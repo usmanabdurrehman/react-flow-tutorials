@@ -4,8 +4,6 @@ import ReactFlow, {
   MiniMap,
   useNodesState,
   useEdgesState,
-  Edge,
-  Node,
   NodeTypes,
   EdgeTypes,
   addEdge,
@@ -13,22 +11,12 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { Box } from "@chakra-ui/react";
-import { CustomNode } from "./CustomNode";
 import CustomEdge from "./CustomEdge";
 import { useCallback } from "react";
 import { initialEdges, initialNodes } from "./Workflow.constants";
 import PaymentInit from "./PaymentInit";
 import PaymentCountry from "./PaymentCountry";
 import PaymentProvider from "./PaymentProvider";
-import "./Workflow.css";
-
-// const nodeTypes: NodeTypes = {
-//   customNode: CustomNode,
-// };
-
-// const edgeTypes: EdgeTypes = {
-//   customEdge: CustomEdge,
-// };
 
 const nodeTypes: NodeTypes = {
   paymentInit: PaymentInit,

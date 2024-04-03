@@ -36,7 +36,6 @@ export default function CustomEdge({
           }}
           className="nodrag nopan"
           onClick={() => {
-            console.log("yo");
             setEdges((es) => es.filter((e) => e.id !== id));
           }}
           icon={<X />}

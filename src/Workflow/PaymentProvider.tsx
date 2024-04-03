@@ -1,6 +1,6 @@
-import { Box, Flex, Icon, Image, Text } from "@chakra-ui/react";
-import React from "react";
-import { Handle, Node, NodeProps, Position } from "reactflow";
+import { Box, Flex, Image, Text } from "@chakra-ui/react";
+import { NodeProps, Position } from "reactflow";
+import CustomHandle from "./CustomHandle";
 
 const PAYMENT_PROVIDER_IMAGE_MAP: { [code: string]: string } = {
   St: "https://cdn.worldvectorlogo.com/logos/stripe-2.svg",
@@ -18,7 +18,7 @@ export default function PaymentProvider({
       alignItems={"center"}
       bg="white"
       p={1}
-      pb={2}
+      pb={1}
       pl={"12px"}
       gap={2}
       width="120px"
@@ -31,9 +31,11 @@ export default function PaymentProvider({
         />
       </Box>
       <Flex grow="1">
-        <Text fontSize="small">{name}</Text>
+        <Text mt={"-2px"} fontSize="small">
+          {name}
+        </Text>
       </Flex>
-      <Handle type="target" position={Position.Left} id="b" />
+      <CustomHandle type="target" position={Position.Left} id="b" />
     </Flex>
   );
 }

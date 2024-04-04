@@ -1,16 +1,22 @@
-import { Box, Flex, Image, Text } from "@chakra-ui/react";
-import { NodeProps, Position } from "reactflow";
+import { Box, Flex, IconButton, Image, Text } from "@chakra-ui/react";
+import { X } from "react-bootstrap-icons";
+import { NodeProps, Position, useReactFlow } from "reactflow";
 import CustomHandle from "./CustomHandle";
 
 const PAYMENT_PROVIDER_IMAGE_MAP: { [code: string]: string } = {
   St: "https://cdn.worldvectorlogo.com/logos/stripe-2.svg",
   Ap: "https://cdn.worldvectorlogo.com/logos/apple-14.svg",
   Gp: "https://cdn.worldvectorlogo.com/logos/google-g-2015.svg",
+  Pp: "https://avatars.githubusercontent.com/u/476675?s=280&v=4",
+  Am: "https://static.wixstatic.com/media/d2252d_4c1a1bda6a774bd68f789c0770fd16e5~mv2.png",
 };
 
 export default function PaymentProvider({
   data: { code, name },
+  id,
 }: NodeProps<{ code: string; name: string }>) {
+  const { setNodes } = useReactFlow();
+
   return (
     <Flex
       borderRadius={"24px"}
@@ -21,7 +27,7 @@ export default function PaymentProvider({
       pb={1}
       pl={"12px"}
       gap={2}
-      width="120px"
+      width="140px"
     >
       <Box h={4} w={4}>
         <Image
@@ -35,6 +41,17 @@ export default function PaymentProvider({
           {name}
         </Text>
       </Flex>
+      <IconButton
+        aria-label="Delete Payment Provider"
+        pointerEvents="all"
+        icon={<X />}
+        color="red"
+        bg="transparent"
+        size="small"
+        onClick={() =>
+          setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id))
+        }
+      />
       <CustomHandle type="target" position={Position.Left} id="b" />
     </Flex>
   );

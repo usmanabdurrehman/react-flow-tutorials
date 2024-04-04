@@ -17,11 +17,13 @@ import { initialEdges, initialNodes } from "./Workflow.constants";
 import PaymentInit from "./PaymentInit";
 import PaymentCountry from "./PaymentCountry";
 import PaymentProvider from "./PaymentProvider";
+import PaymentProviderSelect from "./PaymentProviderSelect";
 
 const nodeTypes: NodeTypes = {
   paymentInit: PaymentInit,
   paymentCountry: PaymentCountry,
   paymentProvider: PaymentProvider,
+  paymentProviderSelect: PaymentProviderSelect,
 };
 
 const edgeTypes: EdgeTypes = {

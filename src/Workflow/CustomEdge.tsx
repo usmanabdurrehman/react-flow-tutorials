@@ -28,16 +28,13 @@ export default function CustomEdge({
       <BaseEdge id={id} path={edgePath} />
       <EdgeLabelRenderer>
         <IconButton
-          aria-label="Delete Button"
-          style={{
-            position: "absolute",
-            transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-            pointerEvents: "all",
-          }}
-          className="nodrag nopan"
+          aria-label="Delete Edge"
           onClick={() => {
             setEdges((es) => es.filter((e) => e.id !== id));
           }}
+          pos="absolute"
+          transform={`translate(-50%, -50%) translate(${labelX}px,${labelY}px)`}
+          pointerEvents="all"
           icon={<X />}
           color="red"
           bg="transparent"

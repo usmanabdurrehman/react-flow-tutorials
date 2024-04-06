@@ -12,21 +12,17 @@ const PAYMENT_PROVIDERS = [
 
 export default function PaymentProviderSelect() {
   const { setNodes } = useReactFlow();
-  const onPaymentProviderClick = ({
-    code,
-    name,
-  }: {
-    code: string;
-    name: string;
-  }) => {
+
+  const onProviderClick = ({ name, code }: { name: string; code: string }) => {
     const location = Math.random() * 500;
+
     setNodes((prevNodes) => [
       ...prevNodes,
       {
         id: `${prevNodes.length + 1}`,
-        data: { code, name },
-        position: { x: location, y: location },
+        data: { name, code },
         type: "paymentProvider",
+        position: { x: location, y: location },
       },
     ]);
   };
@@ -38,7 +34,7 @@ export default function PaymentProviderSelect() {
       </MenuButton>
       <MenuList>
         {PAYMENT_PROVIDERS.map((provider) => (
-          <MenuItem onClick={() => onPaymentProviderClick(provider)}>
+          <MenuItem onClick={() => onProviderClick(provider)}>
             {provider.name}
           </MenuItem>
         ))}

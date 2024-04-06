@@ -1,6 +1,7 @@
 import { Box, Flex, IconButton, Image, Text } from "@chakra-ui/react";
+import React from "react";
 import { X } from "react-bootstrap-icons";
-import { NodeProps, Position, useReactFlow } from "reactflow";
+import { Handle, NodeProps, Position, useReactFlow } from "reactflow";
 import CustomHandle from "./CustomHandle";
 
 const PAYMENT_PROVIDER_IMAGE_MAP: { [code: string]: string } = {
@@ -12,9 +13,9 @@ const PAYMENT_PROVIDER_IMAGE_MAP: { [code: string]: string } = {
 };
 
 export default function PaymentProvider({
-  data: { code, name },
+  data: { name, code },
   id,
-}: NodeProps<{ code: string; name: string }>) {
+}: NodeProps<{ name: string; code: string }>) {
   const { setNodes } = useReactFlow();
 
   return (
@@ -37,7 +38,7 @@ export default function PaymentProvider({
         />
       </Box>
       <Flex grow="1">
-        <Text mt={"-2px"} fontSize="small">
+        <Text fontSize="small" mt={"-2px"}>
           {name}
         </Text>
       </Flex>
@@ -52,11 +53,7 @@ export default function PaymentProvider({
           setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id))
         }
       />
-      <CustomHandle
-        type="target"
-        position={Position.Left}
-        id="paymentProvider"
-      />
+      <CustomHandle type="target" position={Position.Left} />
     </Flex>
   );
 }

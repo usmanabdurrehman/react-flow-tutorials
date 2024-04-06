@@ -1,32 +1,32 @@
 import ReactFlow, {
-  Controls,
-  Background,
-  MiniMap,
-  useNodesState,
-  useEdgesState,
-  NodeTypes,
-  EdgeTypes,
   addEdge,
+  Background,
   Connection,
+  Controls,
+  Edge,
+  MiniMap,
+  Node,
+  useEdgesState,
+  useNodesState,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { Box } from "@chakra-ui/react";
-import CustomEdge from "./CustomEdge";
 import { useCallback } from "react";
 import { initialEdges, initialNodes } from "./Workflow.constants";
 import PaymentInit from "./PaymentInit";
 import PaymentCountry from "./PaymentCountry";
 import PaymentProvider from "./PaymentProvider";
 import PaymentProviderSelect from "./PaymentProviderSelect";
+import CustomEdge from "./CustomEdge";
 
-const nodeTypes: NodeTypes = {
+const nodeTypes = {
   paymentInit: PaymentInit,
   paymentCountry: PaymentCountry,
   paymentProvider: PaymentProvider,
   paymentProviderSelect: PaymentProviderSelect,
 };
 
-const edgeTypes: EdgeTypes = {
+const edgeTypes = {
   customEdge: CustomEdge,
 };
 
@@ -36,27 +36,15 @@ export const Workflow = () => {
 
   const onConnect = useCallback(
     (connection: Connection) => {
-      const { sourceHandle, targetHandle } = connection;
-      if (
-        sourceHandle === "paymentInit" &&
-        targetHandle !== "paymentCountryTarget"
-      )
-        return;
-      if (
-        sourceHandle === "paymentCountrySource" &&
-        targetHandle !== "paymentProvider"
-      )
-        return;
-
       const edge = {
         ...connection,
-        type: "customEdge",
         animated: true,
-        id: `${edges.length + 1}`,
+        id: `${edges.length} + 1`,
+        type: "customEdge",
       };
-      setEdges((eds) => addEdge(edge, eds));
+      setEdges((prevEdges) => addEdge(edge, prevEdges));
     },
-    [setEdges, edges]
+    [edges]
   );
 
   return (
@@ -66,9 +54,9 @@ export const Workflow = () => {
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        onConnect={onConnect}
         fitView
       >
         <Background />

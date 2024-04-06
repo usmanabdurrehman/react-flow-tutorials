@@ -1,38 +1,12 @@
 import { Edge, Node } from "reactflow";
 
-// export const initialEdges: Edge[] = [
-//   {
-//     id: "1-2",
-//     source: "1",
-//     target: "2",
-//     animated: true,
-//   },
-// ];
-
-// export const initialNodes: Node[] = [
-//   {
-//     id: "1",
-//     data: { label: "Hello" },
-//     position: { x: 100, y: 100 },
-//     hidden: true,
-//     draggable: false,
-//   },
-//   {
-//     id: "2",
-//     data: { label: "World" },
-//     position: { x: 300, y: 300 },
-//   },
-// ];
-
-export const initialEdges: Edge[] = [
-  { id: "1-2", source: "1", target: "2", type: "customEdge", animated: true },
-];
+export const initialEdges: Edge[] = [];
 
 export const initialNodes: Node[] = [
   {
     id: "1",
-    data: { amount: 300 },
     position: { x: 100, y: 100 },
+    data: { amount: 10 },
     type: "paymentInit",
   },
   {

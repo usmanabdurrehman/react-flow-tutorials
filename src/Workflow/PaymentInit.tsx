@@ -15,7 +15,7 @@ export default function PaymentInit({ data }: NodeProps<{ amount: number }>) {
           ${data.amount}
         </Text>
       </Box>
-      <CustomHandle type="source" position={Position.Right} id="b" />
+      <CustomHandle type="source" position={Position.Right} id="paymentInit" />
     </Box>
   );
 }

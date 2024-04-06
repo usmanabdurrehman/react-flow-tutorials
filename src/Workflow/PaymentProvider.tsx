@@ -52,7 +52,11 @@ export default function PaymentProvider({
           setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id))
         }
       />
-      <CustomHandle type="target" position={Position.Left} id="b" />
+      <CustomHandle
+        type="target"
+        position={Position.Left}
+        id="paymentProvider"
+      />
     </Flex>
   );
 }

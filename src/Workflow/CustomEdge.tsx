@@ -1,31 +1,37 @@
 import { IconButton } from "@chakra-ui/react";
 import {
-  BaseEdge,
+  BezierEdge,
   EdgeLabelRenderer,
   EdgeProps,
-  getStraightPath,
+  getBezierPath,
   useReactFlow,
 } from "reactflow";
 import { X } from "react-bootstrap-icons";
 
-export default function CustomEdge({
-  id,
-  sourceX,
-  sourceY,
-  targetX,
-  targetY,
-}: EdgeProps) {
-  const { setEdges } = useReactFlow();
-  const [edgePath, labelX, labelY] = getStraightPath({
+export default function CustomEdge(props: EdgeProps) {
+  const {
+    id,
     sourceX,
     sourceY,
     targetX,
     targetY,
+    sourcePosition,
+    targetPosition,
+  } = props;
+
+  const { setEdges } = useReactFlow();
+  const [edgePath, labelX, labelY] = getBezierPath({
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    sourcePosition,
+    targetPosition,
   });
 
   return (
     <>
-      <BaseEdge id={id} path={edgePath} />
+      <BezierEdge {...props} />
       <EdgeLabelRenderer>
         <IconButton
           aria-label="Delete Edge"

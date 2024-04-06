@@ -36,6 +36,18 @@ export const Workflow = () => {
 
   const onConnect = useCallback(
     (connection: Connection) => {
+      const { sourceHandle, targetHandle } = connection;
+      if (
+        sourceHandle === "paymentInit" &&
+        targetHandle !== "paymentCountryTarget"
+      )
+        return;
+      if (
+        sourceHandle === "paymentCountrySource" &&
+        targetHandle !== "paymentProvider"
+      )
+        return;
+
       const edge = {
         ...connection,
         type: "customEdge",

@@ -5,7 +5,6 @@ import { Edge, Node } from "reactflow";
 //     id: "1-2",
 //     source: "1",
 //     target: "2",
-//     type: "customEdge",
 //     animated: true,
 //   },
 // ];
@@ -15,17 +14,19 @@ import { Edge, Node } from "reactflow";
 //     id: "1",
 //     data: { label: "Hello" },
 //     position: { x: 100, y: 100 },
-//     type: "customNode",
+//     hidden: true,
+//     draggable: false,
 //   },
 //   {
 //     id: "2",
 //     data: { label: "World" },
 //     position: { x: 300, y: 300 },
-//     type: "customNode",
 //   },
 // ];
 
-export const initialEdges: Edge[] = [];
+export const initialEdges: Edge[] = [
+  { id: "1-2", source: "1", target: "2", type: "customEdge", animated: true },
+];
 
 export const initialNodes: Node[] = [
   {

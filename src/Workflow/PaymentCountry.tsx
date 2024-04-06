@@ -33,8 +33,16 @@ export default function PaymentCountry({
           <Text fontSize="x-small">{currency}</Text>
         </Box>
       </Flex>
-      <CustomHandle type="source" position={Position.Right} id="a" />
-      <CustomHandle type="target" position={Position.Left} id="b" />
+      <CustomHandle
+        type="source"
+        position={Position.Right}
+        id="paymentCountrySource"
+      />
+      <CustomHandle
+        type="target"
+        position={Position.Left}
+        id="paymentCountryTarget"
+      />
     </Flex>
   );
 }

@@ -1,13 +1,11 @@
 import { ChakraProvider } from "@chakra-ui/react";
-import { useState } from "react";
-import { Workflow } from "./Workflow/Workflow";
+import { SchemaVisualizer } from "./SchemaVisualizer/SchemaVisualizer";
+import "./index.css";
 
 function App() {
-  const [count, setCount] = useState(0);
-
   return (
     <ChakraProvider>
-      <Workflow />
+      <SchemaVisualizer />
     </ChakraProvider>
   );
 }

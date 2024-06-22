@@ -4,7 +4,6 @@ export type Model = {
     name: string;
     type: string;
     hasConnections?: boolean;
-    id: string;
   }[];
   isChild?: boolean;
 };

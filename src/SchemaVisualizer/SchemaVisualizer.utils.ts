@@ -1,26 +1,34 @@
-import { v4 as uuid } from "uuid";
 import { Model, ModelConnection } from "./SchemaVisualizer.types";
+
+const MODEL_PATTERN = /model \w+{[\s\b\w:;\[\]]+}/g;
+const MODEL_NAME_PATTERN = /model (\w+){/g;
+const MODEL_FIELDS_PATTERN = /(\w+): (\w+)/g;
 
 export const getInfoFromSchema = (
   schema: string
 ): { models: Model[]; connections: ModelConnection[] } => {
-  const modelStrings = Array.from(
-    schema.matchAll(/model \w+{[\s\b\w:;\[\]]+}/g)
-  ).map((item) => item[0]);
-
-  const modelNames = modelStrings.map(
-    (model) => Array.from(model.matchAll(/model (\w+){/g))?.[0]?.[1]
+  const modelStrings = Array.from(schema.matchAll(MODEL_PATTERN)).map(
+    (item) => item[0]
   );
 
-  const parsedModels = modelStrings.map((model) => ({
-    name: Array.from(model.matchAll(/model (\w+){/g))?.[0]?.[1],
-    fields: Array.from(model.matchAll(/(\w+): (\w+)/g)).map((item) => ({
-      name: item?.[1],
-      type: item?.[2],
-      hasConnections: modelNames?.some((name) => item?.[2]?.includes(name)),
-      id: uuid(),
-    })),
-  }));
+  const modelNames = modelStrings.map(
+    (model) => Array.from(model.matchAll(MODEL_NAME_PATTERN))?.[0]?.[1]
+  );
+
+  const parsedModels = modelStrings.map((model, index) => {
+    return {
+      name: modelNames[index],
+      fields: Array.from(model.matchAll(MODEL_FIELDS_PATTERN)).map((item) => {
+        const name = item?.[1];
+        const type = item?.[2];
+        return {
+          name,
+          type,
+          hasConnections: modelNames?.some((name) => type?.includes(name)),
+        };
+      }),
+    };
+  });
 
   const connections: ModelConnection[] = [];
 

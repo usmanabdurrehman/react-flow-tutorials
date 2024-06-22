@@ -2,7 +2,7 @@ import { Box, Flex, Text } from "@chakra-ui/react";
 import { Handle, NodeProps, Position } from "reactflow";
 import { Model } from "./SchemaVisualizer.types";
 
-export default function ModelNode({ data, id }: NodeProps<Model>) {
+export default function ModelNode({ data }: NodeProps<Model>) {
   return (
     <Box borderRadius="8px" minWidth="250px">
       {data.isChild && (
@@ -13,7 +13,7 @@ export default function ModelNode({ data, id }: NodeProps<Model>) {
           <pre>{data.name}</pre>
         </Text>
       </Box>
-      {data.fields.map(({ name, type, hasConnections, id }, index) => (
+      {data.fields.map(({ name, type, hasConnections }, index) => (
         <Flex
           _even={{ bg: "#282828" }}
           _odd={{ bg: "#232323" }}

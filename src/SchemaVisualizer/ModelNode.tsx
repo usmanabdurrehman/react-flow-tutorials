@@ -8,8 +8,8 @@ export default function ModelNode({ data, id }: NodeProps<Model>) {
       {data.isChild && (
         <Handle type={"target"} position={Position.Top} id={data.name} />
       )}
-      <Box bg="#42CE8F" p={1} textAlign="center">
-        <Text fontWeight={"bold"} size="sm">
+      <Box borderRadius="8px 8px 0 0" bg="#3d5787" p={1} textAlign="center">
+        <Text fontWeight={"bold"} size="sm" color="white">
           <pre>{data.name}</pre>
         </Text>
       </Box>

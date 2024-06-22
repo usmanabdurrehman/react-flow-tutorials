@@ -8,3 +8,9 @@ export type Model = {
   }[];
   isChild?: boolean;
 };
+
+export type ModelConnection = {
+  target: string;
+  source: string;
+  name: string;
+};

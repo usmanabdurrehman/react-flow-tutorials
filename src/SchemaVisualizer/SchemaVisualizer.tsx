@@ -3,6 +3,7 @@ import "reactflow/dist/style.css";
 import { Box } from "@chakra-ui/react";
 import { initialEdges, initialNodes } from "./SchemaVisualizer.constants";
 import ModelNode from "./ModelNode";
+
 const nodeTypes = {
   model: ModelNode,
 };
@@ -15,6 +16,9 @@ export const SchemaVisualizer = () => {
         defaultEdges={initialEdges}
         nodeTypes={nodeTypes}
         fitView
+        fitViewOptions={{
+          padding: 0.4,
+        }}
       >
         <Background color="#222" variant={BackgroundVariant.Lines} />
         <Controls />

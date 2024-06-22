@@ -1,7 +1,9 @@
 import { v4 as uuid } from "uuid";
-import { Model } from "./SchemaVisualizer.types";
+import { Model, ModelConnection } from "./SchemaVisualizer.types";
 
-export const getModelFromSchema = (schema: string): Model[] => {
+export const getInfoFromSchema = (
+  schema: string
+): { models: Model[]; connections: ModelConnection[] } => {
   const modelStrings = Array.from(
     schema.matchAll(/model \w+{[\s\b\w:;\[\]]+}/g)
   ).map((item) => item[0]);
@@ -20,10 +22,29 @@ export const getModelFromSchema = (schema: string): Model[] => {
     })),
   }));
 
-  return parsedModels.map((model) => ({
-    ...model,
-    isChild: parsedModels.some((parsedModel) =>
-      parsedModel.fields.find((field) => field.type?.includes(model.name))
-    ),
-  }));
+  const connections: ModelConnection[] = [];
+
+  parsedModels.forEach((model) => {
+    model.fields.forEach((field) => {
+      const connection = modelNames?.find((name) =>
+        field?.type?.includes(name)
+      );
+      if (connection)
+        connections.push({
+          target: connection,
+          source: model.name,
+          name: field.name,
+        });
+    });
+  });
+
+  return {
+    connections,
+    models: parsedModels.map((model) => ({
+      ...model,
+      isChild: parsedModels.some((parsedModel) =>
+        parsedModel.fields.find((field) => field.type?.includes(model.name))
+      ),
+    })),
+  };
 };

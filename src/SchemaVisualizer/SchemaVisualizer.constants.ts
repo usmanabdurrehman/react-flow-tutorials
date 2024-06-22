@@ -1,33 +1,6 @@
 import { Edge, Node } from "reactflow";
-import { v4 as uuid } from "uuid";
 import { Model } from "./SchemaVisualizer.types";
-import { getModelFromSchema } from "./SchemaVisualizer.utils";
-
-const schema2 = `
-model Country{
-  id: number;
-  name: string;
-  currency: Currency;
-  animal: Animal
-  capital: City;
-}
-
-model Currency{
-  id: number;
-  symbol: string
-}
-
-model Animal{
-  id: number;
-  name: string;
-}
-
-model City{
-  id: number;
-  name: string;
-}
-
-`;
+import { getInfoFromSchema } from "./SchemaVisualizer.utils";
 
 const schema = `
 
@@ -39,59 +12,60 @@ model Post{
   createdAt: Date
 }
 
+model Comment{
+  id: number;
+  text: string;
+}
+
 model User{
   id: number;
   name: string;
   email: string;
 }
 
-model Comment{
-  id: number;
-  text: string;
-}
-
 `;
-
-export const initialEdges: Edge[] = [
-  {
-    id: "Post-comments",
-    source: "Post",
-    target: "Comment",
-    targetHandle: "Comment",
-    sourceHandle: "Post-comments",
-    animated: true,
-  },
-  {
-    id: "Post-author",
-    source: "Post",
-    target: "User",
-    targetHandle: "User",
-    sourceHandle: "Post-author",
-    animated: true,
-  },
-];
 
 let row = 0;
 let column = 0;
-export const initialNodes: Node<Model>[] = getModelFromSchema(schema2).map(
-  (model, index) => {
-    if (!index) {
-    } else if (index % 2 !== 0) {
-      row += 1;
-    } else {
-      column += 1;
-    }
 
-    const x = row * 300;
-    const y = column * 300;
+const { models, connections } = getInfoFromSchema(schema);
 
-    console.log({ row, column, x, y });
+export const initialEdges: Edge[] = connections.map((connection) => {
+  const sourceId = `${connection.source}-${connection.name}`;
+  return {
+    id: sourceId,
+    source: connection.source,
+    target: connection.target,
+    targetHandle: connection.target,
+    sourceHandle: sourceId,
+    animated: true,
+  };
+});
 
-    return {
-      id: model.name,
-      position: { x, y },
-      type: "model",
-      data: model,
-    };
+const numModels = models.length + 1;
+let numGrid = 1;
+while (1) {
+  if (numGrid ** 2 >= numModels) {
+    break;
   }
-);
+  numGrid += 1;
+}
+
+export const initialNodes: Node<Model>[] = models.map((model, index) => {
+  const x = row * 300;
+  const y = column * 300;
+
+  if (numGrid % index === 0) {
+    column = 0;
+    row += 1;
+  } else {
+    column += 1;
+  }
+
+  return {
+    id: model.name,
+    position: { x, y },
+    type: "model",
+    data: model,
+  };
+});

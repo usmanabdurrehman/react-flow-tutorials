@@ -1,13 +1,15 @@
 import { ChakraProvider } from "@chakra-ui/react";
 import { useState } from "react";
 import { Workflow } from "./Workflow/Workflow";
+import "./index.css";
+import { ReactFlowProvider } from "reactflow";
 
 function App() {
-  const [count, setCount] = useState(0);
-
   return (
     <ChakraProvider>
-      <Workflow />
+      <ReactFlowProvider>
+        <Workflow />
+      </ReactFlowProvider>
     </ChakraProvider>
   );
 }

@@ -1,7 +1,7 @@
 import React from "react";
 import { Handle, HandleProps } from "reactflow";
 
-export default function CustomHandle(props: HandleProps) {
+export default function Terminal(props: HandleProps) {
   return (
     <Handle
       style={{

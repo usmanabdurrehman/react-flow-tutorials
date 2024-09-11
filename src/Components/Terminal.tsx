@@ -1,5 +1,5 @@
 import React from "react";
-import { Handle, HandleProps } from "reactflow";
+import { Handle, HandleProps } from "@xyflow/react";
 
 export default function Terminal(props: HandleProps) {
   return (

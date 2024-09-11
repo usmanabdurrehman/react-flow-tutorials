@@ -2,7 +2,7 @@ import { ChakraProvider } from "@chakra-ui/react";
 import { useState } from "react";
 import { Workflow } from "./Workflow/Workflow";
 import "./index.css";
-import { ReactFlowProvider } from "reactflow";
+import { ReactFlowProvider } from "@xyflow/react";
 
 function App() {
   return (

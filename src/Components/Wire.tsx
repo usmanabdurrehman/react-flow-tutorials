@@ -4,7 +4,8 @@ import {
   BaseEdge,
   EdgeLabelRenderer,
   EdgeProps,
-} from "reactflow";
+  getSmoothStepPath,
+} from "@xyflow/react";
 
 export default function Wire({
   id,
@@ -18,7 +19,7 @@ export default function Wire({
   label,
   markerEnd,
 }: EdgeProps) {
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
     sourceY,
     sourcePosition,

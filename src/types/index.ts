@@ -7,6 +7,7 @@ export enum ElectricalComponentType {
   Resistor = "resistor",
   Capacitor = "capacitor",
   Transistor = "transistor",
+  Inductor = "inductor",
 }
 
 export enum ElectricalComponentUnit {
@@ -16,6 +17,7 @@ export enum ElectricalComponentUnit {
 
 export type ElectricalComponentProps = {
   type: ElectricalComponentType;
+  state?: ElectricalComponentState;
   unit?: ElectricalComponentUnit;
   value: number;
 };

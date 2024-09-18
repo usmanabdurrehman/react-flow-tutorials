@@ -5,16 +5,20 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "server": "node src/server.js"
   },
   "dependencies": {
     "@chakra-ui/react": "^2.8.2",
+    "@emotion/css": "^11.13.0",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
+    "@tanstack/react-query": "^5.56.2",
     "@xyflow/react": "^12.2.1",
+    "axios": "^1.7.7",
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
     "framer-motion": "^11.0.23",
+    "html-to-image": "^1.11.11",
     "react": "^18.2.0",
     "react-bootstrap-icons": "^1.11.3",
     "react-country-flag": "^3.1.0",

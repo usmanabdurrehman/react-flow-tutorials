@@ -1,6 +1,6 @@
-import { Box, Icon, IconButton } from "@chakra-ui/react";
+import { Box, Icon, IconButton, Text } from "@chakra-ui/react";
 import React, { useEffect, useRef, useState } from "react";
-import { Plus } from "react-bootstrap-icons";
+import { Plus, X } from "react-bootstrap-icons";
 import {
   Node,
   NodeProps,
@@ -22,20 +22,36 @@ import { select } from "d3-selection";
 type NumberNode = Node<ElectricalComponentProps, "string">;
 
 export default function ElectricalComponent({
-  data: { type, state },
+  data: { type, state, value, visible = true },
   id,
   selected,
 }: NodeProps<NumberNode>) {
   const { isDark } = useDarkMode();
-  console.log({ selected });
+  const isAdditionValid = state === ElectricalComponentState.Add;
+  const isAdditionInvalid = state === ElectricalComponentState.NotAdd;
 
   let color = "black";
-  if (isDark) color = "white";
-  if (state === ElectricalComponentState.Add) color = "green";
+  if (isDark || isAdditionValid || isAdditionInvalid) color = "white";
 
   const rotateControlRef = useRef(null);
   const updateNodeInternals = useUpdateNodeInternals();
   const [rotation, setRotation] = useState(0);
+
+  let unit;
+  switch (type) {
+    case ElectricalComponentType.Resistor: {
+      unit = "kΩ";
+      break;
+    }
+    case ElectricalComponentType.Inductor: {
+      unit = "H";
+      break;
+    }
+    case ElectricalComponentType.Capacitor: {
+      unit = "μF";
+      break;
+    }
+  }
 
   useEffect(() => {
     if (!rotateControlRef.current) {
@@ -48,11 +64,18 @@ export default function ElectricalComponent({
       const dy = evt.y - 100;
       const rad = Math.atan2(dx, dy);
       const deg = rad * (180 / Math.PI);
-      setRotation(180 - deg);
+
+      let degs = [0, 90, 180, 270, 360];
+      const rotation = 180 - deg;
+      const newRotation = degs?.find((deg) => {
+        if (Math.abs(deg - rotation) <= 45 || Math.abs(deg + rotation) <= 4)
+          return true;
+      });
+      if (newRotation) setRotation(newRotation);
       updateNodeInternals(id);
     });
 
-    selection.call(dragHandler);
+    selection.call(dragHandler as any);
   }, [id, updateNodeInternals, selected]);
 
   return (
@@ -60,6 +83,13 @@ export default function ElectricalComponent({
       pos="relative"
       style={{
         transform: `rotate(${rotation}deg)`,
+        visibility: visible ? "visible" : "hidden",
+        ...(isAdditionValid && {
+          background: "#58ed58",
+        }),
+        ...(isAdditionInvalid && {
+          background: "#ff5050",
+        }),
       }}
     >
       {selected && (
@@ -87,13 +117,22 @@ export default function ElectricalComponent({
       {type === ElectricalComponentType.Inductor && (
         <Inductor color={color} height={24} />
       )}
-      {state === ElectricalComponentState.Add && (
-        <Plus
-          style={{ position: "absolute", top: 10, right: 10 }}
-          color={"green"}
-        />
+      {isAdditionValid && (
+        <Plus style={{ position: "absolute", top: -17, right: 2, color }} />
       )}
-      <Terminal type="target" position={Position.Right} id="right" />
+      {isAdditionInvalid && (
+        <X style={{ position: "absolute", top: -17, right: 2, color }} />
+      )}
+      <Text
+        fontSize="xx-small"
+        style={{
+          position: "absolute",
+          color,
+        }}
+      >
+        {value} {unit}
+      </Text>
+      <Terminal type="source" position={Position.Right} id="right" />
       <Terminal type="source" position={Position.Left} id="left" />
     </Box>
   );

@@ -28,21 +28,17 @@ export default function Wire({
     targetPosition,
   });
 
-  /*
-    const [edgePath, labelX, labelY] = getStraightPath({
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
-  });
-  */
-
   return (
     <>
       <BaseEdge
         path={edgePath}
         markerEnd={markerEnd}
-        style={{ stroke: "yellow", strokeWidth: 1 }}
+        style={{
+          strokeWidth: 1,
+          width: 1,
+          height: 1,
+          stroke: "url(#edge-gradient)",
+        }}
       />
 
       {label && (
@@ -65,11 +61,32 @@ export default function Wire({
       )}
 
       <circle
-        style={{ filter: `drop-shadow(3px 3px 5px #FFC300` }}
+        style={{ filter: `drop-shadow(0px 0px 2px #FFC300` }}
         r="4"
         fill={`yellow`}
         className="circle"
       >
+        <animateMotion dur="6s" repeatCount="indefinite" path={edgePath} />
+      </circle>
+
+      <circle
+        fill="transparent"
+        stroke={`yellow`}
+        strokeWidth={2}
+        className="circle"
+      >
+        <animate
+          attributeName="r"
+          values="2;6"
+          dur="2s"
+          repeatCount="indefinite"
+        />
+        <animate
+          attributeName="opacity"
+          values="1;0"
+          dur="2s"
+          repeatCount="indefinite"
+        />
         <animateMotion dur="6s" repeatCount="indefinite" path={edgePath} />
       </circle>
     </>

@@ -1,5 +1,6 @@
 import { Box, ResponsiveValue, position } from "@chakra-ui/react";
 import React from "react";
+import { useDarkMode } from "../store";
 
 const props = {
   bg: "#eee",
@@ -10,12 +11,16 @@ const props = {
 };
 
 export default function Placeholder() {
+  const { isDark } = useDarkMode();
+  let color = "white";
+  if (isDark) color = "#141414";
+
   return (
     <Box
       p={3}
       pos="relative"
       zIndex={1}
-      bg="white"
+      bg={color}
       display="flex"
       flexDirection={"column"}
       height="100%"

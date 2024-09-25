@@ -17,4 +17,6 @@ export type ElectricalComponentProps = {
   state?: ElectricalComponentState;
   value: number;
   visible: boolean;
+  connectable: boolean;
+  rotation: boolean;
 };

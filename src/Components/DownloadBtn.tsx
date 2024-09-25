@@ -6,6 +6,8 @@ import {
   getViewportForBounds,
 } from "@xyflow/react";
 import { toPng } from "html-to-image";
+import { Button } from "@chakra-ui/react";
+import { useDarkMode } from "../store";
 
 function downloadImage(dataUrl: string) {
   const a = document.createElement("a");
@@ -19,6 +21,10 @@ const imageWidth = 1024;
 const imageHeight = 768;
 
 function DownloadButton() {
+  const { isDark } = useDarkMode();
+  let color = "white";
+  if (isDark) color = "#141414";
+
   const { getNodes } = useReactFlow();
   const onClick = () => {
     const nodesBounds = getNodesBounds(getNodes());
@@ -34,23 +40,26 @@ function DownloadButton() {
     const reactFlow = document.querySelector(
       ".react-flow__viewport"
     ) as HTMLElement;
+    reactFlow.querySelectorAll("path")?.forEach((path) => {
+      path.style.stroke = "yellow";
+    });
     if (!reactFlow) return;
     toPng(reactFlow, {
-      backgroundColor: "#1a365d",
+      backgroundColor: color,
       width: imageWidth,
       height: imageHeight,
       style: {
-        width: imageWidth,
-        height: imageHeight,
+        width: `${imageWidth}px`,
+        height: `${imageHeight}px`,
         transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
       },
     }).then(downloadImage);
   };
 
   return (
-    <button className="download-btn" onClick={onClick}>
+    <Button onClick={onClick} size="sm">
       Download Image
-    </button>
+    </Button>
   );
 }
 

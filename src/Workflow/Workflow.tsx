@@ -1,14 +1,11 @@
 import {
   ReactFlow,
-  addEdge,
   Background,
   Connection,
   ConnectionMode,
   Controls,
   Edge,
-  MiniMap,
   Node,
-  NodeProps,
   Panel,
   useEdgesState,
   useNodesState,
@@ -18,9 +15,11 @@ import {
   ReactFlowJsonObject,
   useStore,
   ReactFlowState,
+  reconnectEdge,
+  OnReconnect,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { Box, Flex, IconButton } from "@chakra-ui/react";
+import { Box, Button, Flex, IconButton } from "@chakra-ui/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Wire from "../Components/Wire";
 import { v4 as uuid } from "uuid";
@@ -36,6 +35,8 @@ import DownloadButton from "../Components/DownloadBtn";
 import { useData, useUpdateData } from "../api";
 import ConnectionLine from "../Components/ConnectionLine";
 import Board from "../Components/Board";
+import { isPointInBox, zoomSelector } from "../utils";
+import useKeyBindings from "../hooks/useKeyBindings";
 
 const nodeTypes = {
   electricalComponent: ElectricalComponent,
@@ -46,8 +47,6 @@ const nodeTypes = {
 const edgeTypes = {
   wire: Wire,
 };
-
-const zoomSelector = (s: ReactFlowState) => s.transform[2] >= 0.9;
 
 export const Workflow = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -109,11 +108,51 @@ export const Workflow = () => {
         return;
       }
 
-      const position = screenToFlowPosition({
+      let position = screenToFlowPosition({
         x: event.clientX,
         y: event.clientY,
       });
+
+      const boards = nodes?.filter(
+        (node) => node.type === ElectricalComponentType.Board
+      );
+      let boardId: string | undefined;
+      boards.forEach((board) => {
+        const {
+          position: { x, y },
+          measured: { height = 0, width = 0 } = {},
+        } = board;
+
+        if (
+          isPointInBox(
+            {
+              x: position.x,
+              y: position.y,
+            },
+            {
+              x: x,
+              y: y,
+              width: width,
+              height: height,
+            }
+          )
+        ) {
+          boardId = board.id;
+        }
+      });
+
       const type = dragOutSideRef.current;
+
+      if (boardId) {
+        const board = nodes?.find((node) => node.id === boardId);
+        const { x, y } = board?.position || { x: 0, y: 0 };
+        const { x: dragX, y: dragY } = position || {
+          x: 0,
+          y: 0,
+        };
+        position = { x: dragX - x, y: dragY - y };
+      }
+
       let newNode: Node | undefined;
       if (
         [
@@ -127,6 +166,7 @@ export const Workflow = () => {
           type: "electricalComponent",
           position,
           data: { type, value: 3, unit: "kΩ" },
+          parentId: boardId,
         };
       } else if (type === ElectricalComponentType.Battery) {
         newNode = {
@@ -134,6 +174,7 @@ export const Workflow = () => {
           type: "battery",
           position,
           data: {},
+          parentId: boardId,
         };
       } else if (type === ElectricalComponentType.Board) {
         newNode = {
@@ -147,11 +188,13 @@ export const Workflow = () => {
 
       if (newNode) setNodes((nds) => nds.concat(newNode as Node));
     },
-    [screenToFlowPosition]
+    [screenToFlowPosition, nodes]
   );
 
   const dragRef = useRef<Node | null>(null);
   const overlappedRef = useRef<Node | null>(null);
+
+  const showContent = useStore(zoomSelector);
 
   const onNodeDragStart: OnNodeDrag = (evt, node) => {
     dragRef.current = node;
@@ -159,78 +202,119 @@ export const Workflow = () => {
 
   const onNodeDrag: OnNodeDrag = (evt, node) => {
     const intersectingNode = getIntersectingNodes(node)?.[0];
+
     setNodes((prevNodes) =>
-      prevNodes.map((node) =>
-        node.id === dragRef?.current?.id
-          ? {
-              ...node,
-              data: {
-                ...node?.data,
-                state:
-                  intersectingNode &&
-                  [
-                    ElectricalComponentType.Resistor,
-                    ElectricalComponentType.Capacitor,
-                    ElectricalComponentType.Inductor,
-                  ].includes(
-                    intersectingNode?.data?.type as ElectricalComponentType
-                  )
-                    ? intersectingNode?.data?.type === node?.data?.type
-                      ? ElectricalComponentState.Add
-                      : ElectricalComponentState.NotAdd
-                    : undefined,
-              },
-            }
-          : node
-      )
+      prevNodes.map((node) => {
+        if (node.id === dragRef?.current?.id)
+          return {
+            ...node,
+            data: {
+              ...node?.data,
+              state:
+                intersectingNode &&
+                [
+                  ElectricalComponentType.Resistor,
+                  ElectricalComponentType.Capacitor,
+                  ElectricalComponentType.Inductor,
+                ].includes(
+                  intersectingNode?.data?.type as ElectricalComponentType
+                )
+                  ? intersectingNode?.data?.type === node?.data?.type
+                    ? ElectricalComponentState.Add
+                    : ElectricalComponentState.NotAdd
+                  : undefined,
+            },
+          };
+
+        return node;
+      })
     );
     overlappedRef.current = intersectingNode;
   };
 
   const onNodeDragStop: OnNodeDrag = (evt, node) => {
-    if (dragRef.current && overlappedRef.current) {
-      if (overlappedRef.current?.data?.type === node?.data?.type) {
-        setNodes((prevNodes) => {
-          const nodes = prevNodes
-            .map((node) =>
-              node.id === overlappedRef.current?.id
-                ? {
-                    ...node,
-                    data: {
-                      ...node?.data,
-                      value:
-                        (node?.data?.value as number) +
-                        (dragRef.current?.data?.value as number),
-                    },
-                  }
-                : node
-            )
-            .filter((node) => node.id !== dragRef?.current?.id);
-          return nodes;
-        });
-      }
-      if (overlappedRef?.current?.type === ElectricalComponentType.Board) {
-        setNodes((prevNodes) =>
-          prevNodes.map((node) => {
-            const { x, y } = overlappedRef?.current?.position || { x: 0, y: 0 };
+    console.log({ evt, node });
+    if (
+      (!overlappedRef.current ||
+        overlappedRef.current?.type !== ElectricalComponentType.Board) &&
+      node.parentId
+    ) {
+      setNodes((prevNodes) => {
+        const board = prevNodes?.find(
+          (prevNode) => prevNode?.id === node.parentId
+        );
+
+        return prevNodes.map((prevNode) => {
+          if (prevNode.id === node.id) {
+            const { x, y } = board?.position || { x: 0, y: 0 };
             const { x: dragX, y: dragY } = node?.position || {
               x: 0,
               y: 0,
             };
-            const position = { x: dragX - x, y: dragY - y };
+            const position = { x: dragX + x, y: dragY + y };
+            return { ...prevNode, position, parentId: undefined };
+          }
+          return prevNode;
+        });
+      });
+    }
 
-            if (node?.id === dragRef?.current?.id) {
-              return {
-                ...node,
-                ...(!node?.parentId && { position }),
-                parentId: overlappedRef.current?.id,
-                extent: "parent",
-              };
-            }
-            return node;
-          })
-        );
-      }
+    if (
+      [
+        ElectricalComponentType.Resistor,
+        ElectricalComponentType.Capacitor,
+        ElectricalComponentType.Inductor,
+      ].includes(node?.data?.type as ElectricalComponentType) &&
+      overlappedRef.current?.data?.type === node?.data?.type
+    ) {
+      // console.log({ overlappedRef, node });
+      setNodes((prevNodes) => {
+        const nodes = prevNodes
+          .map((node) =>
+            node.id === overlappedRef.current?.id
+              ? {
+                  ...node,
+                  data: {
+                    ...node?.data,
+                    value:
+                      (node?.data?.value as number) +
+                      (dragRef.current?.data?.value as number),
+                  },
+                }
+              : node
+          )
+          .filter((node) => node.id !== dragRef?.current?.id);
+        return nodes;
+      });
+    }
+    if (overlappedRef?.current?.type === ElectricalComponentType.Board) {
+      setNodes((prevNodes) =>
+        prevNodes.map((node) => {
+          const { x, y } = overlappedRef?.current?.position || { x: 0, y: 0 };
+          const { x: dragX, y: dragY } = node?.position || {
+            x: 0,
+            y: 0,
+          };
+          const position = { x: dragX - x, y: dragY - y };
+
+          if (node?.id === dragRef?.current?.id) {
+            return {
+              ...node,
+              ...(!node?.parentId && { position }),
+              parentId: overlappedRef.current?.id,
+              data: {
+                ...node?.data,
+                visible: showContent,
+              },
+              draggable: showContent,
+              selectable: showContent,
+              isConnectable: showContent,
+              // extent: "parent",
+            };
+          }
+          return node;
+        })
+      );
     }
   };
 
@@ -255,24 +339,65 @@ export const Workflow = () => {
     return true;
   };
 
-  const showContent = useStore(zoomSelector);
-
-  console.log({ nodes });
+  // console.log({ nodes });
 
   useEffect(() => {
     setNodes((prevNodes) =>
       prevNodes.map((node) => {
         if (node.parentId) {
-          return { ...node, data: { ...node.data, visible: showContent } };
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              visible: showContent,
+              connectable: showContent,
+            },
+            draggable: showContent,
+            selectable: showContent,
+          };
         }
-        return { ...node, data: { ...node.data, visible: true } };
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            visible: true,
+            connectable: true,
+          },
+          draggable: true,
+          selectable: true,
+        };
       })
     );
   }, [showContent]);
 
+  const edgeReconnectSuccessful = useRef(true);
+
+  const onReconnectStart = useCallback(() => {
+    edgeReconnectSuccessful.current = false;
+  }, []);
+
+  const onReconnect: OnReconnect = useCallback((oldEdge, newConnection) => {
+    edgeReconnectSuccessful.current = true;
+    setEdges((els) => reconnectEdge(oldEdge, newConnection, els));
+  }, []);
+
+  const onReconnectEnd = useCallback(
+    (_: MouseEvent | TouchEvent, edge: Edge) => {
+      if (!edgeReconnectSuccessful.current) {
+        setEdges((eds) => eds.filter((e) => e.id !== edge.id));
+      }
+
+      edgeReconnectSuccessful.current = true;
+    },
+    []
+  );
+
+  const onKeyDown = useKeyBindings();
+
   return (
     <Box height={"100vh"} width="100vw" border="1px solid black">
       <ReactFlow
+        onKeyDown={onKeyDown}
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
@@ -289,6 +414,10 @@ export const Workflow = () => {
         isValidConnection={isValidConnection}
         connectionMode={ConnectionMode.Loose}
         colorMode={isDark ? "dark" : "light"}
+        onReconnect={onReconnect}
+        onReconnectStart={onReconnectStart}
+        onReconnectEnd={onReconnectEnd}
+        // snapToGrid
         // translateExtent={[
         //   [0, 0],
         //   [1000, 1000],
@@ -298,7 +427,9 @@ export const Workflow = () => {
         <Panel position="top-right">
           <Flex direction="column" gap={1}>
             <DownloadButton />
-            <button onClick={onSave}>Save</button>
+            <Button onClick={onSave} size="sm">
+              Save
+            </Button>
             <IconButton
               icon={<Resistor height={16} />}
               aria-label="Resistor"
@@ -364,6 +495,14 @@ export const Workflow = () => {
         </Panel>
         <Background />
         <Controls />
+        <svg>
+          <defs>
+            <linearGradient id="edge-gradient">
+              <stop offset="0%" stopColor="#ecff02" />
+              <stop offset="100%" stopColor="#f69900" />
+            </linearGradient>
+          </defs>
+        </svg>
       </ReactFlow>
     </Box>
   );

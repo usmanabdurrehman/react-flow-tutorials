@@ -1,23 +1,22 @@
 import { Box } from "@chakra-ui/react";
-import {
-  Node,
-  NodeProps,
-  NodeResizer,
-  ReactFlowState,
-  useStore,
-} from "@xyflow/react";
-import React, { useState } from "react";
+import { Node, NodeProps, NodeResizer, useStore } from "@xyflow/react";
 import { useDarkMode } from "../store";
 import Placeholder from "./Placeholder";
-type BoardNode = Node<{}, "string">;
+import { zoomSelector } from "../utils";
 
-export default function Board({ selected }: NodeProps<BoardNode>) {
-  const zoomSelector = (s: ReactFlowState) => s.transform[2] >= 0.9;
+type BoardNode = Node<{ isOver: boolean }, "string">;
+
+export default function Board({
+  selected,
+  data: { isOver },
+}: NodeProps<BoardNode>) {
   const showContent = useStore(zoomSelector);
 
   const { isDark } = useDarkMode();
   let color = "black";
   if (isDark) color = "white";
+
+  console.log({ isOver });
 
   return (
     <Box
@@ -25,6 +24,8 @@ export default function Board({ selected }: NodeProps<BoardNode>) {
       width="100%"
       borderRadius="8px"
       border={`2px solid ${color}`}
+      {...(isOver && { bg: `#eaeaff` })}
+      {...(selected && { boxShadow: `${color} 0px 0px 4px` })}
     >
       {!showContent && <Placeholder />}
       {selected && <NodeResizer minWidth={200} minHeight={200} />}

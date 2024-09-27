@@ -3,16 +3,28 @@ import { useReactFlow } from "@xyflow/react";
 import React, { KeyboardEventHandler, useEffect, useState } from "react";
 import { v4 as uuid } from "uuid";
 
-export default function useKeyBindings() {
-  const [] = useState();
+export default function useKeyBindings({
+  undo,
+  redo,
+}: {
+  undo: () => void;
+  redo: () => void;
+}) {
   const { setNodes } = useReactFlow();
 
   const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = (e) => {
     e.preventDefault();
     const key = e.key?.toLowerCase();
-    console.log("key down called");
 
     switch (true) {
+      case e.ctrlKey && key === "z": {
+        undo();
+        break;
+      }
+      case e.ctrlKey && key === "y": {
+        redo();
+        break;
+      }
       case e.ctrlKey && key === "d": {
         setNodes((prevNodes) => prevNodes.filter((node) => !node.selected));
         break;

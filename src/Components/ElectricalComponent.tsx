@@ -1,55 +1,44 @@
-import { Box, Icon, IconButton, Text } from "@chakra-ui/react";
-import React, { useEffect, useRef, useState } from "react";
-import { Copy, Plus, X } from "react-bootstrap-icons";
-import {
-  Node,
-  NodeProps,
-  NodeToolbar,
-  Position,
-  useUpdateNodeInternals,
-} from "@xyflow/react";
+import { Box, Text } from "@chakra-ui/react";
+import { Lock, Plus, Unlock, X } from "react-bootstrap-icons";
+import { Node, NodeProps, Position, useReactFlow } from "@xyflow/react";
 import { Capacitor, Inductor, Resistor } from "../icons";
 import {
-  ElectricalComponentProps,
+  ElectricalComponentData,
   ElectricalComponentState,
   ElectricalComponentType,
 } from "../types";
 import Terminal from "./Terminal";
-import { useStore } from "zustand";
 import { useDarkMode } from "../store";
-import { drag } from "d3-drag";
-import { select } from "d3-selection";
 import Rotator from "./Rotator";
+import { getUnit } from "../utils";
 
-type ElectricalComponentNode = Node<ElectricalComponentProps, "string">;
+type ElectricalComponentNode = Node<ElectricalComponentData, "string">;
 
 export default function ElectricalComponent({
-  data: { type, state, value, visible = true, connectable, rotation },
+  data: {
+    type,
+    state,
+    value,
+    visible = true,
+    connectable,
+    rotation,
+    isAttachedToGroup,
+  },
   id,
   selected,
+  parentId,
+  ...rest
 }: NodeProps<ElectricalComponentNode>) {
   const { isDark } = useDarkMode();
   const isAdditionValid = state === ElectricalComponentState.Add;
   const isAdditionInvalid = state === ElectricalComponentState.NotAdd;
 
+  const { updateNode } = useReactFlow();
+
   let color = "black";
   if (isDark) color = "white";
 
-  let unit;
-  switch (type) {
-    case ElectricalComponentType.Resistor: {
-      unit = "kΩ";
-      break;
-    }
-    case ElectricalComponentType.Inductor: {
-      unit = "H";
-      break;
-    }
-    case ElectricalComponentType.Capacitor: {
-      unit = "μF";
-      break;
-    }
-  }
+  const unit = getUnit(type as ElectricalComponentType);
 
   return (
     <Box
@@ -74,6 +63,24 @@ export default function ElectricalComponent({
       )}
       {type === ElectricalComponentType.Inductor && (
         <Inductor color={color} height={24} />
+      )}
+      {parentId && selected && (
+        <div
+          style={{
+            position: "absolute",
+            top: -23,
+            right: 20,
+            color,
+          }}
+          onClick={() => {
+            updateNode(id, (node) => ({
+              extent: node.extent === "parent" ? undefined : "parent",
+              data: { ...node.data, isAttachedToGroup: !isAttachedToGroup },
+            }));
+          }}
+        >
+          {isAttachedToGroup ? <Lock /> : <Unlock />}
+        </div>
       )}
       {isAdditionValid && (
         <Plus style={{ position: "absolute", top: -17, right: 2, color }} />

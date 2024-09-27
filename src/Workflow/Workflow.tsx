@@ -17,31 +17,46 @@ import {
   ReactFlowState,
   reconnectEdge,
   OnReconnect,
+  MarkerType,
+  addEdge,
+  BackgroundVariant,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { Box, Button, Flex, IconButton } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Flex,
+  Heading,
+  IconButton,
+  Spinner,
+  Text,
+} from "@chakra-ui/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Wire from "../Components/Wire";
 import { v4 as uuid } from "uuid";
-import { initialEdges, initialNodes } from "./Workflow.constants";
+import { COMPONENTS, initialEdges, initialNodes } from "./Workflow.constants";
 import ElectricalComponent from "../Components/ElectricalComponent";
 import { Capacitor, Inductor, Resistor } from "../icons";
 import { ElectricalComponentState, ElectricalComponentType } from "../types";
-import { Moon, Sun } from "react-bootstrap-icons";
+import { Floppy, Moon, Save, Sun } from "react-bootstrap-icons";
 import { useDarkMode } from "../store";
 import Battery from "../Components/Battery";
-import { Battery as BatteryIcon } from "../icons";
+import { Battery as BatteryIcon, Bulb as BulbIcon } from "../icons";
 import DownloadButton from "../Components/DownloadBtn";
 import { useData, useUpdateData } from "../api";
 import ConnectionLine from "../Components/ConnectionLine";
 import Board from "../Components/Board";
 import { isPointInBox, zoomSelector } from "../utils";
 import useKeyBindings from "../hooks/useKeyBindings";
+import Bulb from "../Components/Bulb";
+import { useHistory } from "../hooks/useHistory";
+import ComponentDetail from "../Components/ComponentDetail";
 
 const nodeTypes = {
   electricalComponent: ElectricalComponent,
   battery: Battery,
   board: Board,
+  bulb: Bulb,
 };
 
 const edgeTypes = {
@@ -56,7 +71,7 @@ export const Workflow = () => {
     Edge
   > | null>(null);
 
-  const { mutateAsync: saveFlowState } = useUpdateData();
+  const { mutateAsync: saveFlowState, isPending } = useUpdateData();
   const { data: reactFlowState } = useData();
 
   const { getIntersectingNodes, screenToFlowPosition } = useReactFlow();
@@ -82,6 +97,8 @@ export const Workflow = () => {
   useEffect(() => {
     restoreFlow(reactFlowState);
   }, [reactFlowState]);
+
+  const { addNode, removeNode, undo, redo } = useHistory();
 
   const onDragStart = (
     event: React.DragEvent<HTMLButtonElement>,
@@ -165,7 +182,7 @@ export const Workflow = () => {
           id: uuid(),
           type: "electricalComponent",
           position,
-          data: { type, value: 3, unit: "kΩ" },
+          data: { type, value: 3 },
           parentId: boardId,
         };
       } else if (type === ElectricalComponentType.Battery) {
@@ -173,7 +190,7 @@ export const Workflow = () => {
           id: uuid(),
           type: "battery",
           position,
-          data: {},
+          data: { value: 12 },
           parentId: boardId,
         };
       } else if (type === ElectricalComponentType.Board) {
@@ -184,9 +201,16 @@ export const Workflow = () => {
           data: {},
           style: { width: 200, height: 200 },
         };
+      } else if (type === ElectricalComponentType.Bulb) {
+        newNode = {
+          id: uuid(),
+          type: ElectricalComponentType.Bulb,
+          position,
+          data: { value: 12 },
+        };
       }
 
-      if (newNode) setNodes((nds) => nds.concat(newNode as Node));
+      addNode(newNode);
     },
     [screenToFlowPosition, nodes]
   );
@@ -233,7 +257,6 @@ export const Workflow = () => {
   };
 
   const onNodeDragStop: OnNodeDrag = (evt, node) => {
-    console.log({ evt, node });
     if (
       (!overlappedRef.current ||
         overlappedRef.current?.type !== ElectricalComponentType.Board) &&
@@ -267,7 +290,6 @@ export const Workflow = () => {
       ].includes(node?.data?.type as ElectricalComponentType) &&
       overlappedRef.current?.data?.type === node?.data?.type
     ) {
-      // console.log({ overlappedRef, node });
       setNodes((prevNodes) => {
         const nodes = prevNodes
           .map((node) =>
@@ -288,33 +310,39 @@ export const Workflow = () => {
       });
     }
     if (overlappedRef?.current?.type === ElectricalComponentType.Board) {
-      setNodes((prevNodes) =>
-        prevNodes.map((node) => {
-          const { x, y } = overlappedRef?.current?.position || { x: 0, y: 0 };
-          const { x: dragX, y: dragY } = node?.position || {
-            x: 0,
-            y: 0,
-          };
-          const position = { x: dragX - x, y: dragY - y };
-
-          if (node?.id === dragRef?.current?.id) {
-            return {
-              ...node,
-              ...(!node?.parentId && { position }),
-              parentId: overlappedRef.current?.id,
-              data: {
-                ...node?.data,
-                visible: showContent,
-              },
-              draggable: showContent,
-              selectable: showContent,
-              isConnectable: showContent,
-              // extent: "parent",
+      setNodes((prevNodes) => [
+        overlappedRef.current as Node,
+        ...prevNodes
+          .filter((node) => node.id !== overlappedRef?.current?.id)
+          .map((node) => {
+            const { x, y } = overlappedRef?.current?.position || { x: 0, y: 0 };
+            const { x: dragX, y: dragY } = node?.position || {
+              x: 0,
+              y: 0,
             };
-          }
-          return node;
-        })
-      );
+            const position = { x: dragX - x, y: dragY - y };
+
+            if (node?.id === dragRef?.current?.id) {
+              // console.log({ position, overlappedRef, node });
+              return {
+                ...node,
+                ...((!node?.parentId ||
+                  node?.parentId !== overlappedRef?.current?.id) && {
+                  position,
+                }),
+                parentId: overlappedRef.current?.id,
+                data: {
+                  ...node?.data,
+                  visible: showContent,
+                },
+                draggable: showContent,
+                selectable: showContent,
+                isConnectable: showContent,
+              };
+            }
+            return node;
+          }),
+      ]);
     }
   };
 
@@ -324,10 +352,16 @@ export const Workflow = () => {
         ...connection,
         id: uuid(),
         type: "wire",
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          width: 20,
+          height: 20,
+          color: "#FFC300",
+        },
       };
       setEdges((prevEdges) => [...prevEdges, edge]);
     },
-    [edges]
+    [edges, nodes]
   );
 
   const { toggleMode, isDark } = useDarkMode();
@@ -338,8 +372,6 @@ export const Workflow = () => {
     if (source === target) return false;
     return true;
   };
-
-  // console.log({ nodes });
 
   useEffect(() => {
     setNodes((prevNodes) =>
@@ -392,16 +424,57 @@ export const Workflow = () => {
     []
   );
 
-  const onKeyDown = useKeyBindings();
+  const onKeyDown = useKeyBindings({ undo, redo });
+
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const onNodeClick = (event: React.MouseEvent<Element>, node: Node) => {
+    setSelectedNode(node);
+  };
 
   return (
-    <Box height={"100vh"} width="100vw" border="1px solid black">
+    <Box
+      height={"100vh"}
+      width="100vw"
+      border="1px solid black"
+      position="relative"
+    >
+      {selectedNode && (
+        <Flex
+          position="absolute"
+          top={0}
+          left={0}
+          height="100%"
+          width="200px"
+          style={{
+            width: 150,
+          }}
+          alignItems="center"
+          bg="transparent"
+          marginLeft="12px"
+        >
+          <Box
+            bg="white"
+            border="1px solid #ccc"
+            borderRadius="12px"
+            height="250px"
+            width="100%"
+            padding="12px"
+            marginBottom="50px"
+            position="relative"
+            zIndex={1000}
+          >
+            <ComponentDetail node={selectedNode} />
+          </Box>
+        </Flex>
+      )}
       <ReactFlow
         onKeyDown={onKeyDown}
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onNodeClick={onNodeClick}
+        onPaneClick={() => setSelectedNode(null)}
         onConnect={onConnect}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
@@ -424,64 +497,44 @@ export const Workflow = () => {
         // ]}
         connectionLineComponent={ConnectionLine}
       >
-        <Panel position="top-right">
-          <Flex direction="column" gap={1}>
-            <DownloadButton />
-            <Button onClick={onSave} size="sm">
-              Save
-            </Button>
-            <IconButton
-              icon={<Resistor height={16} />}
-              aria-label="Resistor"
-              size="sm"
-              onDragStart={(event) =>
-                onDragStart(event, ElectricalComponentType.Resistor)
-              }
-              draggable
-            />
-            <IconButton
-              icon={<Capacitor height={16} />}
-              aria-label="Capacitor"
-              size="sm"
-              onDragStart={(event) =>
-                onDragStart(event, ElectricalComponentType.Capacitor)
-              }
-              draggable
-            />
-            <IconButton
-              icon={<Inductor height={12} />}
-              aria-label="Inductor"
-              size="sm"
-              onDragStart={(event) =>
-                onDragStart(event, ElectricalComponentType.Inductor)
-              }
-              draggable
-            />
-            <IconButton
-              icon={<BatteryIcon height={32} />}
-              aria-label="Battery"
-              size="sm"
-              onDragStart={(event) =>
-                onDragStart(event, ElectricalComponentType.Battery)
-              }
-              draggable
-            />
-            <IconButton
-              icon={
-                <Box
-                  height="20px"
-                  width="20px"
-                  borderRadius="8px"
-                  border="2px solid black"
-                ></Box>
-              }
-              aria-label="Board"
-              size="sm"
-              onDragStart={(event) =>
-                onDragStart(event, ElectricalComponentType.Board)
-              }
-              draggable
-            />
+        <Panel
+          position="top-right"
+          style={{
+            border: "1px solid #ccc",
+            padding: 12,
+            borderRadius: "12px",
+            background: "white",
+            width: 150,
+          }}
+        >
+          <Flex direction="column" gap={3}>
+            <div>
+              <Text fontSize="x-small">Project</Text>
+              <Flex gap={1} mt={1} flexWrap="wrap">
+                <DownloadButton />
+                <IconButton
+                  icon={isPending ? <Spinner size="xs" /> : <Floppy />}
+                  aria-label="Save"
+                  size="xs"
+                  onClick={onSave}
+                />
+              </Flex>
+            </div>
+            <div>
+              <Text fontSize="x-small">Components</Text>
+              <Flex gap={1} mt={1} flexWrap="wrap">
+                {COMPONENTS.map((component) => (
+                  <IconButton
+                    key={component.type}
+                    icon={component.icon}
+                    aria-label={component.label}
+                    size="sm"
+                    onDragStart={(event) => onDragStart(event, component.type)}
+                    draggable
+                  />
+                ))}
+              </Flex>
+            </div>
           </Flex>
         </Panel>
         <Panel position="top-left">
@@ -493,7 +546,19 @@ export const Workflow = () => {
             onClick={toggleMode}
           />
         </Panel>
-        <Background />
+        <Background
+          id="1"
+          gap={10}
+          color="#f1f1f1"
+          variant={BackgroundVariant.Lines}
+        />
+
+        <Background
+          id="2"
+          gap={100}
+          color="#ccc"
+          variant={BackgroundVariant.Lines}
+        />
         <Controls />
         <svg>
           <defs>

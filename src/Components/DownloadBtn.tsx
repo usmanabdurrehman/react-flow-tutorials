@@ -6,8 +6,9 @@ import {
   getViewportForBounds,
 } from "@xyflow/react";
 import { toPng } from "html-to-image";
-import { Button } from "@chakra-ui/react";
+import { Button, IconButton } from "@chakra-ui/react";
 import { useDarkMode } from "../store";
+import { Download } from "react-bootstrap-icons";
 
 function downloadImage(dataUrl: string) {
   const a = document.createElement("a");
@@ -57,9 +58,12 @@ function DownloadButton() {
   };
 
   return (
-    <Button onClick={onClick} size="sm">
-      Download Image
-    </Button>
+    <IconButton
+      icon={<Download />}
+      aria-label="Download"
+      size="xs"
+      onClick={onClick}
+    />
   );
 }
 

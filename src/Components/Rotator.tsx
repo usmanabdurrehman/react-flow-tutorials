@@ -28,17 +28,19 @@ export default function Rotator({
       const rad = Math.atan2(dx, dy);
       const deg = rad * (180 / Math.PI);
 
-      let degs = [0, 90, 180, 270, 360];
+      const degrees = [0, 90, 180, 270, 360];
       const rotation = 180 - deg;
-      const newRotation = degs?.find((deg) => {
-        if (Math.abs(deg - rotation) <= 45 || Math.abs(deg + rotation) <= 4)
-          return true;
+      const perpendicularRotation = degrees.find((deg) => {
+        return Math.abs(deg - rotation) <= 45 || Math.abs(deg + rotation) <= 45;
       });
-      if (newRotation) {
+      if (perpendicularRotation) {
         setNodes((prevNodes) =>
           prevNodes.map((node) =>
             node.id === id
-              ? { ...node, data: { ...node?.data, rotation: newRotation } }
+              ? {
+                  ...node,
+                  data: { ...node?.data, rotation: perpendicularRotation },
+                }
               : node
           )
         );

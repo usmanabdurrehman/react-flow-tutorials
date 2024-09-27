@@ -10,10 +10,10 @@ export default function Resistor({
   const cls1 = {
     fill: "none",
     stroke: color,
-    strokeLineCap: "round",
+    strokeLinecap: "round",
     strokeLinejoin: "bevel",
     strokeWidth: "1.5px",
-  };
+  } satisfies React.CSSProperties;
 
   return (
     <svg

@@ -2,28 +2,28 @@ import React from "react";
 
 const Inductor = ({
   color = "black",
-  height,
+  height = 32,
 }: {
   color?: string;
-  height: number;
+  height?: number;
 }) => {
   const cls = {
     strokeWidth: "1.5px",
     stroke: color,
-  };
+  } satisfies React.CSSProperties;
 
   const cls1 = {
     ...cls,
     fill: "none",
     strokeLinecap: "round",
-  };
+  } satisfies React.CSSProperties;
 
   const cls2 = {
     ...cls,
     strokeLinecap: "square",
     strokeLinejoin: "round",
     fill: "none",
-  };
+  } satisfies React.CSSProperties;
 
   return (
     <svg

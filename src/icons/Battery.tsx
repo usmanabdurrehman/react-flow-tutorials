@@ -1,10 +1,4 @@
-export default function Battery({
-  color = "black",
-  height,
-}: {
-  color?: string;
-  height?: number;
-}) {
+export default function Battery({ height }: { height?: number }) {
   return (
     <svg
       height={height}

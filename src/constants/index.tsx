@@ -46,11 +46,3 @@ export const COMPONENTS = [
     label: "Bulb",
   },
 ];
-
-export enum HistoryAction {
-  AddNode = "addNode",
-  RemoveNode = "removeNode",
-  AddEdge = "addEdge",
-  RemoveEdge = "removeEdge",
-  MoveNode = "moveNode",
-}

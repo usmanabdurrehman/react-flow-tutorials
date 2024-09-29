@@ -1,15 +1,8 @@
 import { Box } from "@chakra-ui/react";
-import {
-  Node,
-  NodeProps,
-  NodeResizeControl,
-  NodeResizer,
-  useStore,
-} from "@xyflow/react";
+import { Node, NodeProps, NodeResizer, useStore } from "@xyflow/react";
 import { useDarkMode } from "../store";
 import Placeholder from "./Placeholder";
 import { zoomSelector } from "../utils";
-import { ArrowUp } from "react-bootstrap-icons";
 
 type BoardNode = Node<{ isOver: boolean }, "string">;
 

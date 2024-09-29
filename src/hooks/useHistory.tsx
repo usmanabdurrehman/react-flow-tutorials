@@ -1,20 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { HistoryAction } from "../Workflow/Workflow.constants";
-import { useReactFlow, type Node } from "@xyflow/react";
+import { HistoryAction } from "../constants";
+import { Edge, useReactFlow, type Node } from "@xyflow/react";
 
 type HistoryItem = {
   action: HistoryAction;
   data: any;
 };
 
-export const useHistory = () => {
+export const useHistory = ({
+  setSelectedNode,
+}: {
+  setSelectedNode: (node: Node | null) => void;
+}) => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const currentIndex = useRef(-1);
 
-  const { setNodes } = useReactFlow();
-
-  const canUndo = currentIndex.current > -1;
-  const canRedo = currentIndex.current < history.length - 1;
+  const { setNodes, setEdges } = useReactFlow();
 
   const addToHistory = useCallback(
     (newState: HistoryItem) => {
@@ -26,46 +27,88 @@ export const useHistory = () => {
     [history, currentIndex]
   );
 
-  const addNode = (node: Node | undefined, shouldAddToHistory = true) => {
-    if (node) setNodes((nds) => nds.concat(node as Node));
-    if (shouldAddToHistory) {
-      addToHistory({
-        action: HistoryAction.AddNode,
-        data: node,
-      });
-    }
-  };
+  const addNode = useCallback(
+    (node: Node | undefined, shouldAddToHistory = true) => {
+      if (node) setNodes((nds) => nds.concat(node as Node));
+      if (shouldAddToHistory) {
+        addToHistory({
+          action: HistoryAction.AddNode,
+          data: node,
+        });
+      }
+    },
+    [addToHistory, setNodes]
+  );
 
-  const removeNode = (node: Node | undefined, shouldAddToHistory = true) => {
-    if (node) setNodes((nds) => nds.filter((n) => n.id !== node.id));
-    if (shouldAddToHistory) {
-      addToHistory({
-        action: HistoryAction.RemoveNode,
-        data: node,
-      });
-    }
-  };
+  const addEdge = useCallback(
+    (edge: Edge | undefined, shouldAddToHistory = true) => {
+      if (edge) setEdges((edges) => edges.concat(edge as Edge));
+      if (shouldAddToHistory) {
+        addToHistory({
+          action: HistoryAction.AddEdge,
+          data: edge,
+        });
+      }
+    },
+    [addToHistory, setEdges]
+  );
+
+  const removeNode = useCallback(
+    (node: Node | undefined, shouldAddToHistory = true) => {
+      if (node) {
+        setSelectedNode(null);
+        setNodes((nds) => nds.filter((n) => n.id !== node.id));
+      }
+      if (shouldAddToHistory) {
+        addToHistory({
+          action: HistoryAction.RemoveNode,
+          data: node,
+        });
+      }
+    },
+    [addToHistory, setNodes]
+  );
+
+  const removeEdge = useCallback(
+    (edge: Edge | undefined, shouldAddToHistory = true) => {
+      if (edge) {
+        setSelectedNode(null);
+        setEdges((nds) => nds.filter((n) => n.id !== edge.id));
+      }
+      if (shouldAddToHistory) {
+        addToHistory({
+          action: HistoryAction.RemoveEdge,
+          data: edge,
+        });
+      }
+    },
+    [addToHistory, setEdges]
+  );
 
   const undo = useCallback(() => {
-    console.log({ history, currentIndex });
-    console.log("undo");
+    const canUndo = currentIndex.current > -1;
     if (canUndo) {
       const { action, data } = history[currentIndex.current] || {};
       currentIndex.current -= 1;
-      console.log(action, data);
       switch (action) {
         case HistoryAction.AddNode:
           removeNode(data, false);
           break;
         case HistoryAction.RemoveNode:
+          addNode(data, false);
+          break;
+        case HistoryAction.AddEdge:
+          removeEdge(data, false);
+          break;
+        case HistoryAction.RemoveEdge:
+          addEdge(data, false);
           break;
       }
     }
-  }, [canUndo, currentIndex, history, removeNode]);
+  }, [history, removeNode, addNode, removeEdge, addEdge]);
 
   const redo = useCallback(() => {
-    console.log({ history, currentIndex });
-    console.log("redo");
+    const canRedo = currentIndex.current < history.length;
     if (canRedo) {
       currentIndex.current += 1;
       const { action, data } = history[currentIndex.current] || {};
@@ -74,14 +117,17 @@ export const useHistory = () => {
           addNode(data, false);
           break;
         case HistoryAction.RemoveNode:
+          removeNode(data, false);
+          break;
+        case HistoryAction.AddEdge:
+          addEdge(data, false);
+          break;
+        case HistoryAction.RemoveEdge:
+          removeEdge(data, false);
           break;
       }
     }
-  }, [canRedo, currentIndex, history, addNode]);
+  }, [currentIndex, history, addNode, removeNode, addEdge, removeEdge]);
 
-  useEffect(() => {
-    console.log({ history, currentIndex });
-  }, [history, currentIndex]);
-
-  return { addNode, removeNode, undo, redo };
+  return { addNode, removeNode, addEdge, removeEdge, undo, redo };
 };

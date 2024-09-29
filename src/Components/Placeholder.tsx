@@ -1,14 +1,14 @@
 import { Box, ResponsiveValue, position } from "@chakra-ui/react";
-import React from "react";
+import React, { CSSProperties } from "react";
 import { useDarkMode } from "../store";
 
 const props = {
-  bg: "#eee",
+  background: "#eee",
   height: 5,
-  position: "relative" as any,
+  position: "relative",
   width: "100%",
   flex: 1,
-};
+} satisfies CSSProperties;
 
 export default function Placeholder() {
   const { isDark } = useDarkMode();

@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Panel,
   useReactFlow,
@@ -6,7 +5,7 @@ import {
   getViewportForBounds,
 } from "@xyflow/react";
 import { toPng } from "html-to-image";
-import { Button, IconButton } from "@chakra-ui/react";
+import { IconButton } from "@chakra-ui/react";
 import { useDarkMode } from "../store";
 import { Download } from "react-bootstrap-icons";
 

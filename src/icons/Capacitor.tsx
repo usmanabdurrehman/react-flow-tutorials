@@ -1,4 +1,4 @@
-import React from "react";
+import React, { CSSProperties } from "react";
 
 export default function Capacitor({
   color = "black",
@@ -12,13 +12,14 @@ export default function Capacitor({
     fill: "none",
     stroke: color,
     strokeWidth: "3.5px",
-  };
+  } satisfies CSSProperties;
+
   const cls2 = {
     strokeLinecap: "square",
     fill: "none",
     stroke: color,
     strokeWidth: "3.5px",
-  };
+  } satisfies CSSProperties;
 
   return (
     <svg

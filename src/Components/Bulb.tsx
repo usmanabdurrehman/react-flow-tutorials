@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { Bulb as BulbIcon } from "../icons";
 import { useDarkMode } from "../store";
 import Terminal from "./Terminal";

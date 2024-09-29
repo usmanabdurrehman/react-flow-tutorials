@@ -1,11 +1,5 @@
 import { useState } from "react";
-import {
-  getBezierPath,
-  BaseEdge,
-  EdgeLabelRenderer,
-  EdgeProps,
-  getSmoothStepPath,
-} from "@xyflow/react";
+import { BaseEdge, EdgeProps, getSmoothStepPath } from "@xyflow/react";
 
 export default function Wire({
   id,
@@ -15,11 +9,9 @@ export default function Wire({
   targetY,
   sourcePosition,
   targetPosition,
-  data,
-  label,
   markerEnd,
 }: EdgeProps) {
-  const [edgePath, labelX, labelY] = getSmoothStepPath({
+  const [edgePath] = getSmoothStepPath({
     sourceX,
     sourceY,
     sourcePosition,
@@ -40,25 +32,6 @@ export default function Wire({
           stroke: "url(#edge-gradient)",
         }}
       />
-
-      {label && (
-        <EdgeLabelRenderer>
-          <div
-            style={{
-              position: "absolute",
-              transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-              fontSize: 12,
-              backgroundColor: "#EEF0F6",
-              fill: "#EEF0F6",
-              pointerEvents: "all",
-              padding: "4px",
-            }}
-            className="nodrag nopan"
-          >
-            {label}
-          </div>
-        </EdgeLabelRenderer>
-      )}
 
       <circle
         style={{ filter: `drop-shadow(0px 0px 2px #FFC300` }}

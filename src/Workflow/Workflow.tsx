@@ -14,27 +14,17 @@ import {
   ReactFlowInstance,
   ReactFlowJsonObject,
   useStore,
-  ReactFlowState,
   reconnectEdge,
   OnReconnect,
   MarkerType,
-  addEdge,
   BackgroundVariant,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import {
-  Box,
-  Button,
-  Flex,
-  Heading,
-  IconButton,
-  Spinner,
-  Text,
-} from "@chakra-ui/react";
+import { Box, Flex, IconButton, Spinner, Text } from "@chakra-ui/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Wire from "../Components/Wire";
 import { v4 as uuid } from "uuid";
-import { COMPONENTS, initialEdges, initialNodes } from "./Workflow.constants";
+import { COMPONENTS, initialEdges, initialNodes } from "../constants";
 import ElectricalComponent from "../Components/ElectricalComponent";
 import { Capacitor, Inductor, Resistor } from "../icons";
 import { ElectricalComponentState, ElectricalComponentType } from "../types";
@@ -98,7 +88,10 @@ export const Workflow = () => {
     restoreFlow(reactFlowState);
   }, [reactFlowState]);
 
-  const { addNode, removeNode, undo, redo } = useHistory();
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const { addNode, removeNode, undo, redo, addEdge, removeEdge } = useHistory({
+    setSelectedNode,
+  });
 
   const onDragStart = (
     event: React.DragEvent<HTMLButtonElement>,
@@ -120,7 +113,6 @@ export const Workflow = () => {
     (event) => {
       event.preventDefault();
 
-      // check if the dropped element is valid
       if (!dragOutSideRef.current) {
         return;
       }
@@ -323,7 +315,6 @@ export const Workflow = () => {
             const position = { x: dragX - x, y: dragY - y };
 
             if (node?.id === dragRef?.current?.id) {
-              // console.log({ position, overlappedRef, node });
               return {
                 ...node,
                 ...((!node?.parentId ||
@@ -359,7 +350,7 @@ export const Workflow = () => {
           color: "#FFC300",
         },
       };
-      setEdges((prevEdges) => [...prevEdges, edge]);
+      addEdge(edge);
     },
     [edges, nodes]
   );
@@ -416,17 +407,16 @@ export const Workflow = () => {
   const onReconnectEnd = useCallback(
     (_: MouseEvent | TouchEvent, edge: Edge) => {
       if (!edgeReconnectSuccessful.current) {
-        setEdges((eds) => eds.filter((e) => e.id !== edge.id));
+        removeEdge(edge);
       }
 
       edgeReconnectSuccessful.current = true;
     },
-    []
+    [removeEdge]
   );
 
-  const onKeyDown = useKeyBindings({ undo, redo });
+  useKeyBindings({ undo, redo, removeNode });
 
-  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const onNodeClick = (event: React.MouseEvent<Element>, node: Node) => {
     setSelectedNode(node);
   };
@@ -463,12 +453,11 @@ export const Workflow = () => {
             position="relative"
             zIndex={1000}
           >
-            <ComponentDetail node={selectedNode} />
+            <ComponentDetail node={selectedNode} key={selectedNode.id} />
           </Box>
         </Flex>
       )}
       <ReactFlow
-        onKeyDown={onKeyDown}
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}

@@ -1,9 +1,6 @@
 import { Node, NodeProps, Position } from "@xyflow/react";
-import React, { useState } from "react";
-import { Battery as BatteryIcon } from "../icons";
 import Terminal from "./Terminal";
 import { useDarkMode } from "../store";
-import Rotator from "./Rotator";
 import ColoredBattery from "../icons/Battery";
 import { getUnit } from "../utils";
 import { ElectricalComponentData, ElectricalComponentType } from "../types";

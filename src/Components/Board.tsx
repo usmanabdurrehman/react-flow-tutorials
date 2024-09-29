@@ -4,12 +4,9 @@ import { useDarkMode } from "../store";
 import Placeholder from "./Placeholder";
 import { zoomSelector } from "../utils";
 
-type BoardNode = Node<{ isOver: boolean }, "string">;
+type BoardNode = Node<Record<string, never>, "string">;
 
-export default function Board({
-  selected,
-  data: { isOver },
-}: NodeProps<BoardNode>) {
+export default function Board({ selected }: NodeProps<BoardNode>) {
   const showContent = useStore(zoomSelector);
 
   const { isDark } = useDarkMode();
@@ -22,7 +19,6 @@ export default function Board({
       width="100%"
       borderRadius="8px"
       border={`2px solid ${color}`}
-      {...(isOver && { bg: `#eaeaff` })}
       {...(selected && { boxShadow: `${color} 0px 0px 4px` })}
     >
       {!showContent && <Placeholder />}

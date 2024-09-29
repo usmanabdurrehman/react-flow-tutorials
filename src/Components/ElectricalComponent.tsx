@@ -1,6 +1,6 @@
 import { Box, Text } from "@chakra-ui/react";
 import { Lock, Plus, Unlock, X } from "react-bootstrap-icons";
-import { Node, NodeProps, Position, useReactFlow } from "@xyflow/react";
+import { Handle, Node, NodeProps, Position, useReactFlow } from "@xyflow/react";
 import { Capacitor, Inductor, Resistor } from "../icons";
 import {
   ElectricalComponentData,
@@ -27,7 +27,6 @@ export default function ElectricalComponent({
   id,
   selected,
   parentId,
-  ...rest
 }: NodeProps<ElectricalComponentNode>) {
   const { isDark } = useDarkMode();
   const isAdditionValid = state === ElectricalComponentState.Add;

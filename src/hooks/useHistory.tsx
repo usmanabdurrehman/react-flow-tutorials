@@ -4,7 +4,7 @@ import { Edge, useReactFlow, type Node } from "@xyflow/react";
 
 type HistoryItem = {
   action: HistoryAction;
-  data: any;
+  data: Node | Edge | undefined;
 };
 
 export const useHistory = ({
@@ -92,16 +92,16 @@ export const useHistory = ({
       currentIndex.current -= 1;
       switch (action) {
         case HistoryAction.AddNode:
-          removeNode(data, false);
+          removeNode(data as Node, false);
           break;
         case HistoryAction.RemoveNode:
-          addNode(data, false);
+          addNode(data as Node, false);
           break;
         case HistoryAction.AddEdge:
-          removeEdge(data, false);
+          removeEdge(data as Edge, false);
           break;
         case HistoryAction.RemoveEdge:
-          addEdge(data, false);
+          addEdge(data as Edge, false);
           break;
       }
     }
@@ -114,16 +114,16 @@ export const useHistory = ({
       const { action, data } = history[currentIndex.current] || {};
       switch (action) {
         case HistoryAction.AddNode:
-          addNode(data, false);
+          addNode(data as Node, false);
           break;
         case HistoryAction.RemoveNode:
-          removeNode(data, false);
+          removeNode(data as Node, false);
           break;
         case HistoryAction.AddEdge:
-          addEdge(data, false);
+          addEdge(data as Edge, false);
           break;
         case HistoryAction.RemoveEdge:
-          removeEdge(data, false);
+          removeEdge(data as Edge, false);
           break;
       }
     }

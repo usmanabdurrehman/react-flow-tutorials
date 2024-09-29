@@ -1,5 +1,4 @@
 import {
-  Panel,
   useReactFlow,
   getNodesBounds,
   getViewportForBounds,
@@ -8,14 +7,7 @@ import { toPng } from "html-to-image";
 import { IconButton } from "@chakra-ui/react";
 import { useDarkMode } from "../store";
 import { Download } from "react-bootstrap-icons";
-
-function downloadImage(dataUrl: string) {
-  const a = document.createElement("a");
-
-  a.setAttribute("download", "reactflow.png");
-  a.setAttribute("href", dataUrl);
-  a.click();
-}
+import { downloadImage } from "../utils";
 
 const imageWidth = 1024;
 const imageHeight = 768;
@@ -28,7 +20,7 @@ function DownloadButton() {
   const { getNodes } = useReactFlow();
   const onClick = () => {
     const nodesBounds = getNodesBounds(getNodes());
-    const viewport = getViewportForBounds(
+    const { x, y, zoom } = getViewportForBounds(
       nodesBounds,
       imageWidth,
       imageHeight,
@@ -40,9 +32,9 @@ function DownloadButton() {
     const reactFlow = document.querySelector(
       ".react-flow__viewport"
     ) as HTMLElement;
-    reactFlow.querySelectorAll("path")?.forEach((path) => {
-      path.style.stroke = "yellow";
-    });
+    // reactFlow.querySelectorAll("path")?.forEach((path) => {
+    //   path.style.stroke = "yellow";
+    // });
     if (!reactFlow) return;
     toPng(reactFlow, {
       backgroundColor: color,
@@ -51,7 +43,7 @@ function DownloadButton() {
       style: {
         width: `${imageWidth}px`,
         height: `${imageHeight}px`,
-        transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
+        transform: `translate(${x}px, ${y}px) scale(${zoom})`,
       },
     }).then(downloadImage);
   };

@@ -26,12 +26,14 @@ import Wire from "../Components/Wire";
 import { v4 as uuid } from "uuid";
 import { COMPONENTS, initialEdges, initialNodes } from "../constants";
 import ElectricalComponent from "../Components/ElectricalComponent";
-import { Capacitor, Inductor, Resistor } from "../icons";
-import { ElectricalComponentState, ElectricalComponentType } from "../types";
-import { Floppy, Moon, Save, Sun } from "react-bootstrap-icons";
+import {
+  ElectricalComponentData,
+  ElectricalComponentState,
+  ElectricalComponentType,
+} from "../types";
+import { Floppy, Moon, Sun } from "react-bootstrap-icons";
 import { useDarkMode } from "../store";
 import Battery from "../Components/Battery";
-import { Battery as BatteryIcon, Bulb as BulbIcon } from "../icons";
 import DownloadButton from "../Components/DownloadBtn";
 import { useData, useUpdateData } from "../api";
 import ConnectionLine from "../Components/ConnectionLine";
@@ -312,7 +314,25 @@ export const Workflow = () => {
               x: 0,
               y: 0,
             };
-            const position = { x: dragX - x, y: dragY - y };
+            let position;
+            if (!node.parentId) {
+              position = { x: dragX - x, y: dragY - y };
+            } else if (
+              node.parentId &&
+              node?.parentId !== overlappedRef?.current?.id
+            ) {
+              const prevBoard = prevNodes?.find(
+                (prevNode) => prevNode?.id === node.parentId
+              );
+              const { x: prevBoardX, y: prevBoardY } = prevBoard?.position || {
+                x: 0,
+                y: 0,
+              };
+              position = {
+                x: dragX + prevBoardX - x,
+                y: dragY + prevBoardY - y,
+              };
+            }
 
             if (node?.id === dragRef?.current?.id) {
               return {
@@ -325,10 +345,10 @@ export const Workflow = () => {
                 data: {
                   ...node?.data,
                   visible: showContent,
+                  connectable: showContent,
                 },
                 draggable: showContent,
                 selectable: showContent,
-                isConnectable: showContent,
               };
             }
             return node;
@@ -446,14 +466,17 @@ export const Workflow = () => {
             bg="white"
             border="1px solid #ccc"
             borderRadius="12px"
-            height="250px"
+            height="150px"
             width="100%"
             padding="12px"
             marginBottom="50px"
             position="relative"
             zIndex={1000}
           >
-            <ComponentDetail node={selectedNode} key={selectedNode.id} />
+            <ComponentDetail
+              node={selectedNode as Node<ElectricalComponentData>}
+              key={selectedNode.id}
+            />
           </Box>
         </Flex>
       )}

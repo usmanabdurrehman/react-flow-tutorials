@@ -1,0 +1,11 @@
+.react-flow__attribution {
+  display: none;
+}
+
+.react-flow__handle.connectingto {
+  background: #ff6060;
+}
+
+.react-flow__handle.valid {
+  background: #55dd99;
+}

@@ -6,3 +6,9 @@ export enum ElectricalComponentType {
   Battery = "battery",
   Board = "board",
 }
+
+export type ElectricalComponentData = {
+  value?: number;
+  type?: ElectricalComponentType;
+  rotation?: number;
+};

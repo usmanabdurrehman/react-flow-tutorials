@@ -7,6 +7,7 @@ import {
   Edge,
   MarkerType,
   Node,
+  OnNodeDrag,
   OnReconnect,
   Panel,
   ReactFlow,
@@ -23,15 +24,18 @@ import { useCallback, useRef, useState } from "react";
 import ElectricalComponent from "../Components/ElectricalComponent";
 import Wire from "../Components/Wire";
 import ConnectionLine from "../Components/ConnectionLine";
-import { ElectricalComponentType } from "../types";
+import { ElectricalComponentState, ElectricalComponentType } from "../types";
 import Bulb from "../Components/Bulb";
 import Battery from "../Components/Battery";
 import ComponentDetail from "../Components/ComponentDetail";
+import Board from "../Components/Board";
+import { isPointInBox } from "../utils";
 
 const nodeTypes = {
   electricalComponent: ElectricalComponent,
   bulb: Bulb,
   battery: Battery,
+  board: Board,
 };
 
 const edgeTypes = {
@@ -66,7 +70,7 @@ export const Workflow = () => {
 
   const dragOutsideRef = useRef<ElectricalComponentType | null>(null);
 
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, getIntersectingNodes } = useReactFlow();
 
   const onDragStart = (
     event: React.DragEvent<HTMLButtonElement>,
@@ -87,10 +91,37 @@ export const Workflow = () => {
 
     if (!type) return;
 
-    const position = screenToFlowPosition({
+    let position = screenToFlowPosition({
       x: event.clientX,
       y: event.clientY,
     });
+
+    const boards = nodes?.filter(
+      (node) => node.type === ElectricalComponentType.Board
+    );
+    const board = boards.find((board) => {
+      return isPointInBox(
+        { x: position.x, y: position.y },
+        {
+          x: board.position?.x || 0,
+          y: board?.position?.y || 0,
+          height: board?.measured?.height || 0,
+          width: board?.measured?.width || 0,
+        }
+      );
+    });
+
+    if (board) {
+      const { x, y } = board?.position || {
+        x: 0,
+        y: 0,
+      };
+      const { x: dragX, y: dragY } = position || {
+        x: 0,
+        y: 0,
+      };
+      position = { x: dragX - x, y: dragY - y };
+    }
 
     let node: Node | undefined;
     if (
@@ -105,6 +136,7 @@ export const Workflow = () => {
         type: "electricalComponent",
         position,
         data: { type, value: 3 },
+        parentId: board?.id,
       };
     } else if (type === ElectricalComponentType.Bulb) {
       node = {
@@ -112,6 +144,7 @@ export const Workflow = () => {
         type,
         position,
         data: { value: 12 },
+        parentId: board?.id,
       };
     } else if (type === ElectricalComponentType.Battery) {
       node = {
@@ -119,6 +152,15 @@ export const Workflow = () => {
         type,
         position,
         data: { value: 12 },
+        parentId: board?.id,
+      };
+    } else if (type === ElectricalComponentType.Board) {
+      node = {
+        id: uuid(),
+        type,
+        position,
+        data: {},
+        style: { height: 200, width: 200 },
       };
     }
 
@@ -151,6 +193,147 @@ export const Workflow = () => {
       setEdges((prevEdges) =>
         prevEdges.filter((prevEdge) => prevEdge.id !== edge.id)
       );
+    }
+  };
+
+  const overlappingNodeRef = useRef<Node | null>(null);
+
+  const onNodeDrag: OnNodeDrag = (evt, dragNode) => {
+    const overlappingNode = getIntersectingNodes(dragNode)?.[0];
+    overlappingNodeRef.current = overlappingNode;
+
+    setNodes((prevNodes) =>
+      prevNodes.map((node) => {
+        if (node.id === dragNode.id) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              state:
+                overlappingNode &&
+                [
+                  ElectricalComponentType.Capacitor,
+                  ElectricalComponentType.Resistor,
+                  ElectricalComponentType.Inductor,
+                ].includes(
+                  overlappingNode?.data?.type as ElectricalComponentType
+                )
+                  ? overlappingNode?.data?.type === dragNode?.data?.type
+                    ? ElectricalComponentState.Add
+                    : ElectricalComponentState.NotAdd
+                  : undefined,
+            },
+          };
+        }
+        return node;
+      })
+    );
+  };
+
+  const onNodeDragStop: OnNodeDrag = (evt, dragNode) => {
+    if (
+      !overlappingNodeRef.current ||
+      (overlappingNodeRef?.current?.type !== ElectricalComponentType.Board &&
+        dragNode?.parentId)
+    ) {
+      setNodes((prevNodes) => {
+        const board = prevNodes?.find(
+          (prevNode) => prevNode.id === dragNode?.parentId
+        );
+
+        return prevNodes.map((node) => {
+          if (node.id === dragNode.id) {
+            const { x, y } = board?.position || { x: 0, y: 0 };
+            const { x: dragX, y: dragY } = dragNode?.position || { x: 0, y: 0 };
+
+            const position = { x: dragX + x, y: dragY + y };
+
+            return { ...node, position, parentId: undefined };
+          }
+          return node;
+        });
+      });
+    }
+
+    if (
+      [
+        ElectricalComponentType.Capacitor,
+        ElectricalComponentType.Resistor,
+        ElectricalComponentType.Inductor,
+      ].includes(
+        overlappingNodeRef?.current?.data?.type as ElectricalComponentType
+      ) &&
+      dragNode?.data?.type === overlappingNodeRef?.current?.data?.type
+    ) {
+      setNodes((prevNodes) =>
+        prevNodes
+          .map((node) => {
+            if (node.id === overlappingNodeRef?.current?.id) {
+              return {
+                ...node,
+                data: {
+                  ...node?.data,
+                  value:
+                    (dragNode?.data?.value as number) +
+                    (node?.data?.value as number),
+                },
+              };
+            }
+            return node;
+          })
+          .filter((node) => node.id !== dragNode?.id)
+      );
+    }
+
+    if (overlappingNodeRef?.current?.type === ElectricalComponentType.Board) {
+      setNodes((prevNodes) => [
+        overlappingNodeRef?.current as Node,
+        ...prevNodes
+          .filter((node) => node.id !== overlappingNodeRef?.current?.id)
+          .map((node) => {
+            if (node.id === dragNode?.id) {
+              const { x, y } = overlappingNodeRef?.current?.position || {
+                x: 0,
+                y: 0,
+              };
+              const { x: dragX, y: dragY } = dragNode?.position || {
+                x: 0,
+                y: 0,
+              };
+
+              let position;
+              if (!node.parentId) {
+                position = { x: dragX - x, y: dragY - y };
+              } else if (
+                node.parentId &&
+                node?.parentId !== overlappingNodeRef?.current?.id
+              ) {
+                const prevBoard = prevNodes?.find(
+                  (node) => node?.id === dragNode?.parentId
+                );
+                const { x: prevBoardX, y: prevBoardY } =
+                  prevBoard?.position || {
+                    x: 0,
+                    y: 0,
+                  };
+                position = {
+                  x: dragX + prevBoardX - x,
+                  y: dragY + prevBoardY - y,
+                };
+              }
+
+              return {
+                ...node,
+                parentId: overlappingNodeRef?.current?.id,
+                ...((!dragNode?.parentId ||
+                  dragNode?.parentId !== overlappingNodeRef?.current?.id) && {
+                  position,
+                }),
+              };
+            }
+            return node;
+          }),
+      ]);
     }
   };
 
@@ -205,6 +388,8 @@ export const Workflow = () => {
         onReconnectStart={onReconnectStart}
         onReconnect={onReconnect}
         onReconnectEnd={onReconnectEnd}
+        onNodeDrag={onNodeDrag}
+        onNodeDragStop={onNodeDragStop}
       >
         <Panel
           position="top-right"

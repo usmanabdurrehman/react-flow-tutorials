@@ -7,8 +7,14 @@ export enum ElectricalComponentType {
   Board = "board",
 }
 
+export enum ElectricalComponentState {
+  Add = "add",
+  NotAdd = "notAdd",
+}
+
 export type ElectricalComponentData = {
   value?: number;
   type?: ElectricalComponentType;
   rotation?: number;
+  state?: ElectricalComponentState;
 };

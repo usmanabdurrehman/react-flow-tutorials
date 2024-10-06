@@ -97,7 +97,7 @@ export default function ElectricalComponent({
         {value} {unit}
       </Text>
       <Terminal
-        type="source"
+        type="target"
         position={Position.Right}
         id="right"
         isConnectable={connectable}

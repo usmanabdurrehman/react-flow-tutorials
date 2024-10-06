@@ -497,7 +497,7 @@ export const Workflow = () => {
         onDragOver={onDragOver}
         onInit={setRfInstance}
         isValidConnection={isValidConnection}
-        connectionMode={ConnectionMode.Loose}
+        // connectionMode={ConnectionMode.Loose}
         colorMode={isDark ? "dark" : "light"}
         onReconnect={onReconnect}
         onReconnectStart={onReconnectStart}

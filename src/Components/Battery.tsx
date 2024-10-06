@@ -43,7 +43,7 @@ export default function Battery({
         style={{ left: 9, top: 2 }}
       />
       <Terminal
-        type="source"
+        type="target"
         position={Position.Top}
         id="right"
         isConnectable={connectable}

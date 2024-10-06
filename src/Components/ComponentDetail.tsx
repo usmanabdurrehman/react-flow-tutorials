@@ -24,7 +24,7 @@ export default function ComponentDetail({
     <Box>
       <Heading fontSize="xs">{nodeType?.toUpperCase()}</Heading>
 
-      {node?.data?.value && (
+      {node?.type !== ElectricalComponentType.Board && (
         <InputGroup size="sm" mt={2}>
           <Input
             placeholder="Value"

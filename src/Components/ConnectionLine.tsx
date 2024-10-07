@@ -3,6 +3,7 @@ import {
   getSimpleBezierPath,
 } from "@xyflow/react";
 import React from "react";
+import { useDarkMode } from "../store";
 
 export default function ConnectionLine({
   fromX,
@@ -18,7 +19,10 @@ export default function ConnectionLine({
     targetY: toY,
   });
 
+  const { isDark } = useDarkMode();
+
   let color = "black";
+  if (isDark) color = "white";
   if (connectionStatus === "valid") color = "#55dd99";
   if (connectionStatus === "invalid") color = "#ff6060";
 

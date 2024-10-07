@@ -11,16 +11,18 @@ import {
   OnReconnect,
   Panel,
   ReactFlow,
+  ReactFlowInstance,
   reconnectEdge,
   useEdgesState,
   useNodesState,
   useReactFlow,
+  useStore,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { Box, Flex, IconButton, Text } from "@chakra-ui/react";
+import { Box, Flex, IconButton, Spinner, Text } from "@chakra-ui/react";
 import { COMPONENTS, initialEdges, initialNodes } from "../constants";
 import { v4 as uuid } from "uuid";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ElectricalComponent from "../Components/ElectricalComponent";
 import Wire from "../Components/Wire";
 import ConnectionLine from "../Components/ConnectionLine";
@@ -29,7 +31,13 @@ import Bulb from "../Components/Bulb";
 import Battery from "../Components/Battery";
 import ComponentDetail from "../Components/ComponentDetail";
 import Board from "../Components/Board";
-import { isPointInBox } from "../utils";
+import { isPointInBox, zoomSelector } from "../utils";
+import useKeyBindings from "../hooks/useKeyBindings";
+import { Floppy, Moon, Sun } from "react-bootstrap-icons";
+import { useData, useUpdateData } from "../api";
+import DownloadBtn from "../Components/DownloadBtn";
+import { useDarkMode } from "../store";
+import useHistory from "../hooks/useHistory";
 
 const nodeTypes = {
   electricalComponent: ElectricalComponent,
@@ -46,20 +54,25 @@ export const Workflow = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
-  const onConnect = useCallback((connection: Connection) => {
-    const edge = {
-      ...connection,
-      type: "wire",
-      id: uuid(),
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        width: 20,
-        height: 20,
-        color: "#FFC300",
-      },
-    };
-    setEdges((eds) => eds.concat(edge));
-  }, []);
+  const { addNode, removeNode, addEdge, removeEdge, undo, redo } = useHistory();
+
+  const onConnect = useCallback(
+    (connection: Connection) => {
+      const edge = {
+        ...connection,
+        type: "wire",
+        id: uuid(),
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          width: 20,
+          height: 20,
+          color: "#FFC300",
+        },
+      };
+      addEdge(edge);
+    },
+    [addEdge]
+  );
 
   const isValidConnection = (connection: Edge | Connection) => {
     const { source, target } = connection;
@@ -70,7 +83,8 @@ export const Workflow = () => {
 
   const dragOutsideRef = useRef<ElectricalComponentType | null>(null);
 
-  const { screenToFlowPosition, getIntersectingNodes } = useReactFlow();
+  const { screenToFlowPosition, getIntersectingNodes, setViewport } =
+    useReactFlow();
 
   const onDragStart = (
     event: React.DragEvent<HTMLButtonElement>,
@@ -164,7 +178,7 @@ export const Workflow = () => {
       };
     }
 
-    if (node) setNodes((prevNodes) => prevNodes.concat(node));
+    if (node) addNode(node);
   };
 
   const [selectedNode, setSelectedNode] = useState<Node | undefined>();
@@ -190,13 +204,13 @@ export const Workflow = () => {
 
   const onReconnectEnd = (_: MouseEvent | TouchEvent, edge: Edge) => {
     if (!edgeReconnectSuccessful.current) {
-      setEdges((prevEdges) =>
-        prevEdges.filter((prevEdge) => prevEdge.id !== edge.id)
-      );
+      removeEdge(edge);
     }
   };
 
   const overlappingNodeRef = useRef<Node | null>(null);
+
+  const showContent = useStore(zoomSelector);
 
   const onNodeDrag: OnNodeDrag = (evt, dragNode) => {
     const overlappingNode = getIntersectingNodes(dragNode)?.[0];
@@ -329,6 +343,13 @@ export const Workflow = () => {
                   dragNode?.parentId !== overlappingNodeRef?.current?.id) && {
                   position,
                 }),
+                draggable: showContent,
+                selectable: showContent,
+                data: {
+                  ...node.data,
+                  visible: showContent,
+                  connectable: showContent,
+                },
               };
             }
             return node;
@@ -336,6 +357,64 @@ export const Workflow = () => {
       ]);
     }
   };
+
+  useKeyBindings({ removeNode, undo, redo });
+
+  useEffect(() => {
+    setNodes((prevNodes) =>
+      prevNodes.map((node) => {
+        if (node.parentId) {
+          return {
+            ...node,
+            draggable: showContent,
+            selectable: showContent,
+            data: {
+              ...node.data,
+              visible: showContent,
+              connectable: showContent,
+            },
+          };
+        }
+        return {
+          ...node,
+          ...node,
+          draggable: true,
+          selectable: true,
+          data: {
+            ...node.data,
+            visible: true,
+            connectable: true,
+          },
+        };
+      })
+    );
+  }, [showContent]);
+
+  const { mutateAsync: saveFlow, isPending } = useUpdateData();
+  const { data: reactFlowState } = useData();
+
+  useEffect(() => {
+    if (reactFlowState) {
+      const { x = 0, y = 0, zoom = 1 } = reactFlowState.viewport;
+      setNodes(reactFlowState.nodes || []);
+      setEdges(reactFlowState.edges || []);
+      setViewport({ x, y, zoom });
+    }
+  }, [reactFlowState]);
+
+  const [rfInstance, setRfInstance] = useState<ReactFlowInstance<
+    Node,
+    Edge
+  > | null>(null);
+
+  const onSave = () => {
+    if (rfInstance) {
+      const flow = rfInstance.toObject();
+      saveFlow(flow);
+    }
+  };
+
+  const { isDark, toggleMode } = useDarkMode();
 
   return (
     <Box
@@ -371,12 +450,13 @@ export const Workflow = () => {
         </Flex>
       )}
       <ReactFlow
+        onInit={setRfInstance}
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        connectionMode={ConnectionMode.Loose}
+        // connectionMode={ConnectionMode.Strict}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         connectionLineComponent={ConnectionLine}
@@ -390,7 +470,17 @@ export const Workflow = () => {
         onReconnectEnd={onReconnectEnd}
         onNodeDrag={onNodeDrag}
         onNodeDragStop={onNodeDragStop}
+        colorMode={isDark ? "dark" : "light"}
       >
+        <Panel position="top-left">
+          <IconButton
+            icon={isDark ? <Sun /> : <Moon />}
+            aria-label="Light/Dark Mode"
+            size="xs"
+            colorScheme={isDark ? "orange" : "blackAlpha"}
+            onClick={toggleMode}
+          />
+        </Panel>
         <Panel
           position="top-right"
           style={{
@@ -402,6 +492,19 @@ export const Workflow = () => {
           }}
         >
           <Flex direction={"column"} gap={2}>
+            <div>
+              <Text fontSize="x-small">Project</Text>
+              <Flex mt={1} gap={1} flexWrap="wrap">
+                <IconButton
+                  icon={isPending ? <Spinner size="xs" /> : <Floppy />}
+                  aria-label="Save"
+                  size="xs"
+                  onClick={onSave}
+                />
+                <DownloadBtn />
+              </Flex>
+            </div>
+
             <div>
               <Text fontSize="x-small">Components</Text>
               <Flex mt={1} gap={1} flexWrap="wrap">

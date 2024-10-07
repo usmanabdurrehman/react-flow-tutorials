@@ -5,6 +5,7 @@ import { Box, Text } from "@chakra-ui/react";
 import { default as BatteryIcon } from "../icons/Battery";
 import { getUnit } from "../utils";
 import Terminal from "./Terminal";
+import { useDarkMode } from "../store";
 
 type BatteryNode = Node<ElectricalComponentData, "string">;
 
@@ -28,7 +29,7 @@ export default function Battery({
       </Text>
       <Terminal
         style={{ left: 39, top: 2 }}
-        type="source"
+        type="target"
         position={Position.Top}
         id="right"
       />

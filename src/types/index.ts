@@ -17,4 +17,14 @@ export type ElectricalComponentData = {
   type?: ElectricalComponentType;
   rotation?: number;
   state?: ElectricalComponentState;
+  isAttachedToGroup?: boolean;
+  visible?: boolean;
+  connectable?: boolean;
 };
+
+export enum HistoryAction {
+  AddNode = "addNode",
+  RemoveNode = "removeNode",
+  AddEdge = "addEdge",
+  RemoveEdge = "removeEdge",
+}

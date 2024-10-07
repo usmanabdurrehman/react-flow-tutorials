@@ -1,4 +1,7 @@
+import { ReactFlowState } from "@xyflow/react";
 import { ElectricalComponentType } from "../types";
+
+export const zoomSelector = (s: ReactFlowState) => s.transform[2] >= 0.7;
 
 export const isPointInBox = (
   point: { x: number; y: number },

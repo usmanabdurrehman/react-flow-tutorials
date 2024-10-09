@@ -1,0 +1,14 @@
+.handle {
+  width: 10px;
+  height: 10px;
+  background: white;
+  border: 2px solid black;
+}
+
+.react-flow__handle.connectingto {
+  background: #ff6060;
+}
+
+.react-flow__handle.valid {
+  background: #55dd99;
+}

@@ -7,7 +7,7 @@ import {
   EdgeProps,
   getBezierPath,
   useReactFlow,
-} from "reactflow";
+} from "@xyflow/react";
 
 export default function CustomEdge(props: EdgeProps) {
   const {

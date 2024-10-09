@@ -1,22 +1,31 @@
-import { Box, Flex, IconButton, Image, Text } from "@chakra-ui/react";
-import React from "react";
-import { X } from "react-bootstrap-icons";
-import { Handle, NodeProps, Position, useReactFlow } from "reactflow";
-import CustomHandle from "./CustomHandle";
+import {
+  Box,
+  Flex,
+  IconButton,
+  Image,
+  Popover,
+  PopoverArrow,
+  PopoverBody,
+  PopoverCloseButton,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTrigger,
+  Text,
+} from "@chakra-ui/react";
 
-const PAYMENT_PROVIDER_IMAGE_MAP: { [code: string]: string } = {
-  St: "https://cdn.worldvectorlogo.com/logos/stripe-2.svg",
-  Ap: "https://cdn.worldvectorlogo.com/logos/apple-14.svg",
-  Gp: "https://cdn.worldvectorlogo.com/logos/google-g-2015.svg",
-  Pp: "https://avatars.githubusercontent.com/u/476675?s=280&v=4",
-  Am: "https://static.wixstatic.com/media/d2252d_4c1a1bda6a774bd68f789c0770fd16e5~mv2.png",
-};
+import { Pencil, PencilSquare, Stripe, X } from "react-bootstrap-icons";
+import { Node, NodeProps, Position, useReactFlow } from "@xyflow/react";
+import CustomHandle from "./CustomHandle";
+import { PAYMENT_PROVIDERS, PAYMENT_PROVIDER_IMAGE_MAP } from "../constants";
+
+type PaymentProviderNode = Node<{ name: string; code: string }, string>;
 
 export default function PaymentProvider({
   data: { name, code },
   id,
-}: NodeProps<{ name: string; code: string }>) {
-  const { setNodes } = useReactFlow();
+  selected,
+}: NodeProps<PaymentProviderNode>) {
+  const { setNodes, updateNodeData } = useReactFlow();
 
   return (
     <Flex
@@ -27,8 +36,7 @@ export default function PaymentProvider({
       p={1}
       pb={1}
       pl={"12px"}
-      gap={2}
-      width="140px"
+      gap={1}
     >
       <Box h={4} w={4}>
         <Image
@@ -38,21 +46,58 @@ export default function PaymentProvider({
         />
       </Box>
       <Flex grow="1">
-        <Text fontSize="small" mt={"-2px"}>
+        <Text fontSize="small" mt={"-2px"} marginRight={"10px"}>
           {name}
         </Text>
       </Flex>
-      <IconButton
-        aria-label="Delete Payment Provider"
-        pointerEvents="all"
-        icon={<X />}
-        color="red"
-        bg="transparent"
-        size="small"
-        onClick={() =>
-          setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id))
-        }
-      />
+      {selected && (
+        <>
+          <Popover placement="top">
+            <PopoverTrigger>
+              <IconButton
+                aria-label="Edit Payment Provider"
+                pointerEvents="all"
+                icon={<PencilSquare />}
+                bg="transparent"
+                size="small"
+                color="gray"
+                onClick={() => {}}
+              />
+            </PopoverTrigger>
+            <PopoverContent width="150px">
+              <PopoverArrow />
+              <PopoverBody>
+                <Flex flexWrap="wrap" gap={2}>
+                  {PAYMENT_PROVIDERS.map(({ code, name }) => (
+                    <Image
+                      height="24px"
+                      width="24px"
+                      cursor={"pointer"}
+                      src={PAYMENT_PROVIDER_IMAGE_MAP[code]}
+                      onClick={() => updateNodeData(id, { code, name })}
+                    />
+                  ))}
+                </Flex>
+              </PopoverBody>
+            </PopoverContent>
+          </Popover>
+
+          <IconButton
+            aria-label="Delete Payment Provider"
+            pointerEvents="all"
+            icon={<X />}
+            color="red"
+            bg="transparent"
+            size="small"
+            onClick={() => {
+              setNodes((prevNodes) =>
+                prevNodes.filter((node) => node.id !== id)
+              );
+            }}
+          />
+        </>
+      )}
+
       <CustomHandle type="target" position={Position.Left} />
     </Flex>
   );

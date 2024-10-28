@@ -27,6 +27,15 @@ export const initialNodes: Node[] = [
       countryCode: "US",
     },
   },
+  {
+    id: "3",
+    type: "expensiveNode",
+    position: {
+      x: 300,
+      y: 67,
+    },
+    data: {},
+  },
 ];
 
 export const initialEdges: Edge[] = [
@@ -35,22 +44,6 @@ export const initialEdges: Edge[] = [
     target: "2",
     animated: true,
     id: "1-2",
-    label: <div>lmao son</div>,
-    // label: <IconButton size="xs" icon={<X />} aria-label="Delete Edge" />,
-    // label: "Edge 1",
-    markerEnd: {
-      type: MarkerType.ArrowClosed,
-      width: 20,
-      height: 20,
-      color: "#FFC300",
-    },
-    style: {
-      stroke: "blue",
-      opacity: 0.3,
-      fill: "yellow",
-      cursor: "col-resize",
-    },
-    type: "straight",
   },
 ];
 
@@ -60,7 +53,7 @@ export enum NodeType {
   PaymentProvider = "paymentProvider",
 }
 
-export const COMPONENTS = [
+export const NODES = [
   {
     label: "Payment Init",
     type: NodeType.PaymentInit,
@@ -77,6 +70,10 @@ export const COMPONENTS = [
     icon: <Bank />,
   },
 ];
+
+export const COMPONENTS = new Array(1000)
+  .fill(null)
+  .map((_, i) => NODES[i % 3]);
 
 export const PAYMENT_PROVIDER_IMAGE_MAP: { [code: string]: string } = {
   St: "https://cdn.worldvectorlogo.com/logos/stripe-2.svg",

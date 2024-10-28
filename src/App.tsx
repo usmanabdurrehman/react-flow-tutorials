@@ -1,8 +1,12 @@
 import { ChakraProvider } from "@chakra-ui/react";
-import { Workflow } from "./Workflow/Workflow";
+import { Memoization } from "./Optimization/Memoization";
 import "./index.css";
 import { ReactFlowProvider } from "@xyflow/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { NodeMemoization } from "./Optimization/NodeMemoization";
+import { LazilyRenderNodes } from "./Optimization/LazilyRenderNodes";
+import { SnapNodes } from "./Optimization/SnapNodes";
+import { CollapseNodes } from "./Optimization/CollapseNodes";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,7 +24,11 @@ function App() {
     <ChakraProvider>
       <QueryClientProvider client={queryClient}>
         <ReactFlowProvider>
-          <Workflow />
+          {/* <Memoization /> */}
+          {/* <NodeMemoization /> */}
+          {/* <LazilyRenderNodes /> */}
+          {/* <SnapNodes /> */}
+          <CollapseNodes />
         </ReactFlowProvider>
       </QueryClientProvider>
     </ChakraProvider>

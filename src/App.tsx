@@ -35,4 +35,14 @@ function App() {
   );
 }
 
+// if (targetNode.data?.children) {
+//   setNodes((prevNodes) =>
+//     prevNodes.map((node) =>
+//       (targetNode?.data?.children as string[])?.includes(node.id)
+//         ? { ...node, hidden: !node.hidden }
+//         : node
+//     )
+//   );
+// }
+
 export default App;

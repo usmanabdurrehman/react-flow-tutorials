@@ -10,13 +10,14 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { Box, Text, Flex, IconButton } from "@chakra-ui/react";
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 import { COMPONENTS, NodeType, initialEdges, initialNodes } from "../constants";
 import PaymentInit from "../Components/PaymentInit";
 import PaymentCountry from "../Components/PaymentCountry";
 import PaymentProvider from "../Components/PaymentProvider";
 import CustomEdge from "../Components/CustomEdge";
 import { v4 as uuid } from "uuid";
+import { NodesSidebar } from "../Components/NodesSidebar";
 
 const nodeTypes = {
   paymentInit: PaymentInit,
@@ -36,56 +37,62 @@ export const Memoization = () => {
 
   const { screenToFlowPosition } = useReactFlow();
 
-  const onDragStart = (
-    event: React.DragEvent<HTMLButtonElement>,
-    type: NodeType
-  ) => {
-    dragOutsideRef.current = type;
-    event.dataTransfer.effectAllowed = "move";
-  };
+  const onDragStart = useCallback(
+    (event: React.DragEvent<HTMLButtonElement>, type: NodeType) => {
+      dragOutsideRef.current = type;
+      event.dataTransfer.effectAllowed = "move";
+    },
+    []
+  );
 
-  const onDragOver: React.DragEventHandler<HTMLDivElement> = (event) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = "move";
-  };
+  const onDragOver: React.DragEventHandler<HTMLDivElement> = useCallback(
+    (event) => {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+    },
+    []
+  );
 
-  const onDrop: React.DragEventHandler<HTMLDivElement> = (event) => {
-    event.preventDefault();
-    const type = dragOutsideRef.current;
+  const onDrop: React.DragEventHandler<HTMLDivElement> = useCallback(
+    (event) => {
+      event.preventDefault();
+      const type = dragOutsideRef.current;
 
-    if (!type) return;
+      if (!type) return;
 
-    const position = screenToFlowPosition({
-      x: event.clientX,
-      y: event.clientY,
-    });
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
 
-    let node: Node | undefined;
-    const commonNodeProps = {
-      id: `${type}-${uuid()}`,
-      type,
-      position,
-    };
-
-    if (type === NodeType.PaymentCountry) {
-      node = {
-        ...commonNodeProps,
-        data: { currency: "$", country: "United States", countryCode: "US" },
+      let node: Node | undefined;
+      const commonNodeProps = {
+        id: `${type}-${uuid()}`,
+        type,
+        position,
       };
-    } else if (type === NodeType.PaymentProvider) {
-      node = {
-        ...commonNodeProps,
-        data: { name: "Stripe", code: "St" },
-      };
-    } else if (type === NodeType.PaymentInit) {
-      node = {
-        ...commonNodeProps,
-        data: { amount: 100 },
-      };
-    }
 
-    if (node) setNodes((prevNodes) => [...prevNodes, node]);
-  };
+      if (type === NodeType.PaymentCountry) {
+        node = {
+          ...commonNodeProps,
+          data: { currency: "$", country: "United States", countryCode: "US" },
+        };
+      } else if (type === NodeType.PaymentProvider) {
+        node = {
+          ...commonNodeProps,
+          data: { name: "Stripe", code: "St" },
+        };
+      } else if (type === NodeType.PaymentInit) {
+        node = {
+          ...commonNodeProps,
+          data: { amount: 100 },
+        };
+      }
+
+      if (node) setNodes((prevNodes) => [...prevNodes, node]);
+    },
+    [screenToFlowPosition, setNodes]
+  );
 
   return (
     <Box height={"100vh"} width="100vw" border="1px solid black">
@@ -111,23 +118,7 @@ export const Memoization = () => {
             overflowY: "auto",
           }}
         >
-          <Flex direction={"column"} gap={2}>
-            <div>
-              <Text fontSize="x-small">Components</Text>
-              <Flex mt={1} gap={1} flexWrap="wrap">
-                {COMPONENTS.map((component) => (
-                  <IconButton
-                    size="sm"
-                    key={component.label}
-                    aria-label={component.label}
-                    icon={component.icon}
-                    onDragStart={(event) => onDragStart(event, component.type)}
-                    draggable
-                  />
-                ))}
-              </Flex>
-            </div>
-          </Flex>
+          <NodesSidebar onDragStart={onDragStart} />
         </Panel>
         <Background />
         <Controls />

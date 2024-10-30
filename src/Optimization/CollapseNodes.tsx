@@ -68,7 +68,7 @@ export const CollapseNodes = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   const onNodeClick: NodeMouseHandler<Node> = (event, targetNode) => {
-    if (targetNode.data?.children) {
+    if (targetNode?.data?.children) {
       setNodes((prevNodes) =>
         prevNodes.map((node) =>
           (targetNode?.data?.children as string[])?.includes(node.id)

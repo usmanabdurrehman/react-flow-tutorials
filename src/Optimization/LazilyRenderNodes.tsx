@@ -19,7 +19,7 @@ const generatedNodes = generateNodes(6000, 5000);
 export const LazilyRenderNodes = () => {
   return (
     <Box height={"100vh"} width="100vw" border="1px solid black">
-      <ReactFlow defaultNodes={generatedNodes}>
+      <ReactFlow defaultNodes={generatedNodes} onlyRenderVisibleElements>
         <Background />
         <Controls />
       </ReactFlow>

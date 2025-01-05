@@ -1,11 +1,14 @@
 import { ChakraProvider } from "@chakra-ui/react";
-import { SchemaVisualizer } from "./SchemaVisualizer/SchemaVisualizer";
+import { Workflow } from "./Workflow/Workflow";
 import "./index.css";
+import { ReactFlowProvider } from "@xyflow/react";
 
 function App() {
   return (
     <ChakraProvider>
-      <SchemaVisualizer />
+      <ReactFlowProvider>
+        <Workflow />
+      </ReactFlowProvider>
     </ChakraProvider>
   );
 }

@@ -1,78 +1,80 @@
-import { BaseEdge, useReactFlow, type EdgeProps } from "@xyflow/react";
+import { IconButton } from "@chakra-ui/react";
+import {
+  BaseEdge,
+  EdgeLabelRenderer,
+  EdgeProps,
+  Position,
+  getSmoothStepPath,
+  getStraightPath,
+  useReactFlow,
+} from "@xyflow/react";
 import { useRef, useState } from "react";
+import { Trash } from "react-bootstrap-icons";
 
 export default function EditableEdge({
+  id,
   sourceX,
   sourceY,
-  markerEnd,
   targetX,
   targetY,
+  sourcePosition,
+  targetPosition,
 }: EdgeProps) {
+  const centerY = (targetY - sourceY) / 2 + sourceY;
   const { screenToFlowPosition } = useReactFlow();
 
-  // const [{ x, y }, setXY] = useState({
-  //   x: sourceX,
-  //   y: (targetY - sourceY) / 2 + sourceY,
-  // });
-
   const [points, setPoints] = useState([
-    {
-      x: sourceX,
-      y: (targetY - sourceY) / 2 + sourceY,
-    },
-    {
-      x: targetX,
-      y: (targetY - sourceY) / 2 + sourceY,
-    },
+    { x: sourceX, y: centerY },
+    { x: targetX, y: centerY },
   ]);
 
-  const path = `
-  M ${sourceX} ${sourceY} L ${points?.[0]?.x} ${points?.[0]?.y} L ${points?.[1]?.x} ${points?.[1]?.y} L ${targetX} ${targetY}
-  `;
+  const edgePath = `M ${sourceX} ${sourceY} L ${points?.[0]?.x} ${points?.[0]?.y} L ${points?.[1]?.x} ${points?.[1]?.y} L ${targetX} ${targetY}`;
 
   const isMouseDown = useRef(false);
 
   return (
     <>
       <BaseEdge
-        path={path}
-        markerEnd={markerEnd}
-        style={{ stroke: "#ff0073", strokeWidth: "2px" }}
+        id={id}
+        path={edgePath}
+        style={{ stroke: "#ff0473", strokeWidth: "2px" }}
       />
-      {points.map((point, index) => (
-        <circle
-          style={{ pointerEvents: "all" }}
-          cx={point.x}
-          cy={point.y}
-          fill="#ff0066"
-          stroke="white"
-          strokeWidth="2px"
-          r={"6px"}
-          tabIndex={0}
-          onMouseDown={() => {
-            isMouseDown.current = true;
-          }}
-          onMouseLeave={() => {
-            isMouseDown.current = false;
-          }}
-          onMouseUp={() => {
-            isMouseDown.current = false;
-          }}
-          onMouseMove={(evt) => {
-            if (isMouseDown.current) {
-              evt.preventDefault();
-              const dragX = evt.clientX;
-              const dragY = evt.clientY;
-              const newPoints = [...points];
-              newPoints[index] = screenToFlowPosition(
+      {points.map((point, index) => {
+        return (
+          <circle
+            fill="#ff0066"
+            stroke="white"
+            strokeWidth={1}
+            cx={point.x}
+            cy={point.y}
+            r="6px"
+            style={{ pointerEvents: "all" }}
+            tabIndex={0}
+            onMouseDown={() => {
+              isMouseDown.current = true;
+            }}
+            onMouseUp={() => {
+              isMouseDown.current = false;
+            }}
+            onMouseLeave={() => {
+              isMouseDown.current = false;
+            }}
+            onMouseMove={(e) => {
+              if (!isMouseDown.current) return;
+              e.preventDefault();
+              const dragX = e.clientX;
+              const dragY = e.clientY;
+
+              const pointsArr = [...points];
+              pointsArr[index] = screenToFlowPosition(
                 { x: dragX, y: dragY },
                 { snapToGrid: false }
               );
-              setPoints(newPoints);
-            }
-          }}
-        />
-      ))}
+              setPoints(pointsArr);
+            }}
+          />
+        );
+      })}
     </>
   );
 }

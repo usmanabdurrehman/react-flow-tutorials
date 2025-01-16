@@ -1,32 +1,37 @@
-import { BaseEdge, type EdgeProps } from "@xyflow/react";
+import { IconButton } from "@chakra-ui/react";
+import {
+  BaseEdge,
+  EdgeLabelRenderer,
+  EdgeProps,
+  Position,
+  getSmoothStepPath,
+  getStraightPath,
+} from "@xyflow/react";
+import { Trash } from "react-bootstrap-icons";
 
 export default function SineEdge({
+  id,
   sourceX,
   sourceY,
-  markerEnd,
   targetX,
   targetY,
+  sourcePosition,
+  targetPosition,
 }: EdgeProps) {
-  const path = `
+  const centerY = (targetY - sourceY) / 2 + sourceY;
+  const centerX = (targetX - sourceX) / 2 + sourceX;
+
+  const edgePath = `
   M ${sourceX} ${sourceY} 
-  L ${sourceX} ${(targetY - sourceY) / 2 + sourceY} 
-  Q ${(targetX - sourceX) * 0.25 + sourceX} ${targetY} ${
-    (targetX - sourceX) * 0.5 + sourceX
-  } ${(targetY - sourceY) / 2 + sourceY} 
-  Q ${(targetX - sourceX) * 0.75 + sourceX} ${sourceY} ${
-    targetX - sourceX + sourceX
-  } ${(targetY - sourceY) / 2 + sourceY}
-  L ${targetX} ${(targetY - sourceY) / 2 + sourceY} 
-  L ${targetX} ${targetY}
-  `;
+  L ${sourceX} ${centerY} 
+  Q ${(targetX - sourceX) * 0.25 + sourceX} ${targetY} ${centerX} ${centerY}
+  Q ${(targetX - sourceX) * 0.75 + sourceX} ${sourceY} ${targetX} ${centerY}
+  L ${targetX} ${centerY} 
+  L ${targetX} ${targetY}`;
 
   return (
     <>
-      <BaseEdge
-        path={path}
-        markerEnd={markerEnd}
-        style={{ stroke: "#ff0073", strokeWidth: "2px" }}
-      />
+      <BaseEdge id={id} path={edgePath} />
     </>
   );
 }

@@ -5,34 +5,50 @@ import {
   type EdgeProps,
   InternalNode,
   Node,
+  getStraightPath,
 } from "@xyflow/react";
 
 import { Position } from "@xyflow/react";
 
 function getNodeIntersection(
   intersectionNode: InternalNode<Node>,
-  targetNode: InternalNode<Node>
+  sourceNode: InternalNode<Node>
 ) {
-  const { width: intersectionNodeWidth, height: intersectionNodeHeight } =
-    intersectionNode.measured;
-  const intersectionNodePosition = intersectionNode.internals.positionAbsolute;
-  const targetPosition = targetNode.internals.positionAbsolute;
+  const intersectionNodePosition = intersectionNode.position;
+  const targetPosition = sourceNode.position;
 
-  const w = (intersectionNodeWidth || 0) / 2;
-  const h = (intersectionNodeHeight || 0) / 2;
+  const intersectionNodeHalfWidth = (intersectionNode.measured.width || 0) / 2;
+  const intersectionNodeHalfHeight =
+    (intersectionNode.measured.height || 0) / 2;
 
-  const x2 = intersectionNodePosition.x + w;
-  const y2 = intersectionNodePosition.y + h;
-  const x1 = targetPosition.x + (targetNode.measured.width || 0) / 2;
-  const y1 = targetPosition.y + (targetNode.measured.height || 0) / 2;
+  // Finding Center Points of both nodes
+  const intersectionNodeCenterX =
+    intersectionNodePosition.x + intersectionNodeHalfWidth;
+  const intersectionNodeCenterY =
+    intersectionNodePosition.y + intersectionNodeHalfHeight;
+  const sourceNodeCenterX =
+    targetPosition.x + (sourceNode.measured.width || 0) / 2;
+  const sourceNodeCenterY =
+    targetPosition.y + (sourceNode.measured.height || 0) / 2;
 
-  const xx1 = (x1 - x2) / (2 * w) - (y1 - y2) / (2 * h);
-  const yy1 = (x1 - x2) / (2 * w) + (y1 - y2) / (2 * h);
+  // Normalizing X,Y Distance between nodes
+  const xx1 =
+    (sourceNodeCenterX - intersectionNodeCenterX) /
+      (2 * intersectionNodeHalfWidth) -
+    (sourceNodeCenterY - intersectionNodeCenterY) /
+      (2 * intersectionNodeHalfHeight);
+  const yy1 =
+    (sourceNodeCenterX - intersectionNodeCenterX) /
+      (2 * intersectionNodeHalfWidth) +
+    (sourceNodeCenterY - intersectionNodeCenterY) /
+      (2 * intersectionNodeHalfHeight);
+
+  // Scaling it properly
   const a = 1 / (Math.abs(xx1) + Math.abs(yy1) || 1);
   const xx3 = a * xx1;
   const yy3 = a * yy1;
-  const x = w * (xx3 + yy3) + x2;
-  const y = h * (-xx3 + yy3) + y2;
+  const x = intersectionNodeHalfWidth * (xx3 + yy3) + intersectionNodeCenterX;
+  const y = intersectionNodeHalfHeight * (-xx3 + yy3) + intersectionNodeCenterY;
 
   return { x, y };
 }
@@ -41,22 +57,21 @@ function getEdgePosition(
   node: InternalNode<Node>,
   intersectionPoint: { x: number; y: number }
 ) {
-  const n = { ...node.internals.positionAbsolute, ...node };
-  const nx = Math.round(n.x);
-  const ny = Math.round(n.y);
+  const nx = Math.round(node.position.x);
+  const ny = Math.round(node.position?.y);
   const px = Math.round(intersectionPoint.x);
   const py = Math.round(intersectionPoint.y);
 
   if (px <= nx + 1) {
     return Position.Left;
   }
-  if (px >= nx + (n.measured.width || 0) - 1) {
+  if (px >= nx + (node.measured.width || 0) - 1) {
     return Position.Right;
   }
   if (py <= ny + 1) {
     return Position.Top;
   }
-  if (py >= n.y + (n.measured.height || 0) - 1) {
+  if (py >= node.position?.y + (node.measured.height || 0) - 1) {
     return Position.Bottom;
   }
 
@@ -64,19 +79,14 @@ function getEdgePosition(
 }
 
 function getEdgeParams(source: InternalNode<Node>, target: InternalNode<Node>) {
-  const sourceIntersectionPoint = getNodeIntersection(source, target);
   const targetIntersectionPoint = getNodeIntersection(target, source);
 
-  const sourcePos = getEdgePosition(source, sourceIntersectionPoint);
-  const targetPos = getEdgePosition(target, targetIntersectionPoint);
+  const targetPosition = getEdgePosition(target, targetIntersectionPoint);
 
   return {
-    sx: sourceIntersectionPoint.x,
-    sy: sourceIntersectionPoint.y,
-    tx: targetIntersectionPoint.x,
-    ty: targetIntersectionPoint.y,
-    sourcePos,
-    targetPos,
+    targetX: targetIntersectionPoint.x,
+    targetY: targetIntersectionPoint.y,
+    targetPosition,
   };
 }
 
@@ -95,16 +105,17 @@ export default function FollowingEdge({
     return null;
   }
 
-  const { tx, ty, targetPos } = getEdgeParams(sourceNode, targetNode);
+  const { targetX, targetY, targetPosition } = getEdgeParams(
+    sourceNode,
+    targetNode
+  );
 
-  console.log({ targetPos });
-
-  const [edgePath] = getSmoothStepPath({
-    targetPosition: targetPos,
+  const [edgePath] = getStraightPath({
+    // targetPosition,
     sourceX,
     sourceY,
-    targetX: tx,
-    targetY: ty,
+    targetX,
+    targetY,
   });
 
   return <BaseEdge path={edgePath} markerEnd={markerEnd} style={style} />;

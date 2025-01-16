@@ -3,55 +3,53 @@ import {
   Background,
   BackgroundVariant,
   Controls,
-  EdgeMouseHandler,
   useEdgesState,
   useNodesState,
+  EdgeMouseHandler,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { Box } from "@chakra-ui/react";
 import { initialEdges, initialNodes } from "./Workflow.constants";
-import CustomEdge from "./CustomEdge";
-import FollowingEdge from "./FollowingEdge";
 import { useCallback } from "react";
+import CustomEdge from "./CustomEdge";
+import StepEdge from "./StepEdge";
+import SineEdge from "./SineEdge";
 import EditableEdge from "./EditableEdge";
 import EditableEdge2 from "./EditableEdge2";
-import SineEdge from "./SineEdge";
-import StepEdge from "./StepEdge";
+import FollowingEdge from "./FollowingEdge";
 
 const edgeTypes = {
   custom: CustomEdge,
-  editable: EditableEdge,
-  follow: FollowingEdge,
-  editable2: EditableEdge2,
-  sine: SineEdge,
   step: StepEdge,
+  sine: SineEdge,
+  editable: EditableEdge,
+  editable2: EditableEdge2,
+  following: FollowingEdge,
 };
 
 export const Workflow = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
-  const onEdgeMouseEnter: EdgeMouseHandler = useCallback(
-    (_, edge) => {
-      setEdges((prevEdges) =>
-        prevEdges.map((e) =>
-          e.id === edge.id ? { ...e, data: { ...e.data, isHovered: true } } : e
-        )
-      );
-    },
-    [setEdges]
-  );
+  const onEdgeMouseEnter: EdgeMouseHandler = (_, edge) => {
+    setEdges((prevEdges) =>
+      prevEdges.map((e) =>
+        e.id === edge.id
+          ? { ...edge, data: { ...edge.data, isHovered: true } }
+          : e
+      )
+    );
+  };
 
-  const onEdgeMouseLeave: EdgeMouseHandler = useCallback(
-    (_, edge) => {
-      setEdges((prevEdges) =>
-        prevEdges.map((e) =>
-          e.id === edge.id ? { ...e, data: { ...e.data, isHovered: false } } : e
-        )
-      );
-    },
-    [setEdges]
-  );
+  const onEdgeMouseLeave: EdgeMouseHandler = (_, edge) => {
+    setEdges((prevEdges) =>
+      prevEdges.map((e) =>
+        e.id === edge.id
+          ? { ...edge, data: { ...edge.data, isHovered: false } }
+          : e
+      )
+    );
+  };
 
   return (
     <Box height={"100vh"} width="100wh">

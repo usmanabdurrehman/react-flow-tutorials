@@ -22,9 +22,9 @@ export const initialEdges: Edge[] = [
     id: "1-2",
     source: "1",
     target: "2",
-    type: "follow",
+    type: "following",
     markerEnd: {
-      type: MarkerType.Arrow,
+      type: MarkerType.ArrowClosed,
     },
   },
 ];

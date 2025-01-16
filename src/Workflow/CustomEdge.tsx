@@ -2,69 +2,63 @@ import { IconButton } from "@chakra-ui/react";
 import {
   BaseEdge,
   EdgeLabelRenderer,
+  EdgeProps,
+  Position,
   getSmoothStepPath,
-  useReactFlow,
-  type EdgeProps,
+  getStraightPath,
 } from "@xyflow/react";
-import { useCallback } from "react";
 import { Trash } from "react-bootstrap-icons";
 
 export default function CustomEdge({
+  id,
   sourceX,
   sourceY,
-  markerEnd,
-  targetPosition,
-  sourcePosition,
   targetX,
   targetY,
-  data: { isHovered = false } = {},
-  id,
+  sourcePosition,
+  targetPosition,
+  markerEnd,
+  data: { isHovered } = {},
 }: EdgeProps) {
-  const { setEdges } = useReactFlow();
-  const onDeleteEdge = useCallback(() => {
-    setEdges((prevEdges) => prevEdges.filter((edge) => edge.id !== id));
-  }, [id, setEdges]);
-
   const [edgePath, labelX, labelY] = getSmoothStepPath({
-    targetPosition,
     sourceX,
     sourceY,
     targetX,
     targetY,
     sourcePosition,
+    targetPosition,
   });
+
+  console.log({ edgePath });
 
   return (
     <>
       <g
-        onClick={() => {
-          console.log("ayo g");
+        onClick={(e) => {
+          console.log("edge got clicked");
         }}
       >
-        <BaseEdge
-          path={edgePath}
-          markerEnd={markerEnd}
-          style={{ stroke: "#ff0073", strokeWidth: "2px" }}
-        />
+        <BaseEdge id={id} path={edgePath} markerEnd={markerEnd} />
       </g>
-
       {isHovered && (
         <EdgeLabelRenderer>
           <div
-            className="button-edge__label nodrag nopan"
+            className="nodrag nopan"
             style={{
-              transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
               position: "absolute",
-              pointerEvents: "all",
               transformOrigin: "center",
+              transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+              pointerEvents: "all",
             }}
           >
             <IconButton
               aria-label="Delete Edge"
-              icon={<Trash />}
-              onClick={onDeleteEdge}
-              size="xs"
               colorScheme="red"
+              size="xs"
+              icon={<Trash />}
+              onClick={() => {
+                console.log("I have been clicked");
+              }}
             />
           </div>
         </EdgeLabelRenderer>

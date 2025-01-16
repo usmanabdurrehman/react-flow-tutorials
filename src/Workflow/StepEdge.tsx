@@ -1,26 +1,30 @@
-import { BaseEdge, type EdgeProps } from "@xyflow/react";
+import { IconButton } from "@chakra-ui/react";
+import {
+  BaseEdge,
+  EdgeLabelRenderer,
+  EdgeProps,
+  Position,
+  getSmoothStepPath,
+  getStraightPath,
+} from "@xyflow/react";
+import { Trash } from "react-bootstrap-icons";
 
 export default function StepEdge({
+  id,
   sourceX,
   sourceY,
-  markerEnd,
   targetX,
   targetY,
-  id,
+  sourcePosition,
+  targetPosition,
 }: EdgeProps) {
-  const path = `
-  M ${sourceX} ${sourceY} L ${sourceX} ${
-    (targetY - sourceY) / 2 + sourceY
-  } L ${targetX} ${(targetY - sourceY) / 2 + sourceY} L ${targetX} ${targetY}
-  `;
+  const centerY = (targetY - sourceY) / 2 + sourceY;
+
+  const edgePath = `M ${sourceX} ${sourceY} L ${sourceX} ${centerY} L ${targetX} ${centerY} L ${targetX} ${targetY}`;
 
   return (
     <>
-      <BaseEdge
-        path={path}
-        markerEnd={markerEnd}
-        style={{ stroke: "#ff0073", strokeWidth: "2px" }}
-      />
+      <BaseEdge id={id} path={edgePath} />
     </>
   );
 }

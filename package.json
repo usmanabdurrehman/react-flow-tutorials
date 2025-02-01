@@ -23,6 +23,7 @@
     "react-bootstrap-icons": "^1.11.3",
     "react-country-flag": "^3.1.0",
     "react-dom": "^18.2.0",
+    "react-hook-form": "^7.54.2",
     "uuid": "^10.0.0",
     "zustand": "^4.5.5"
   },

@@ -6,7 +6,10 @@ import {
   PAYMENT_PROVIDER_IMAGE_MAP,
   PAYMENT_PROVIDERS,
 } from "../constants/dummy";
-import React from "react";
+import React, { useMemo } from "react";
+import { memoComparator } from "../utils/memoComparator";
+import { useWatch } from "react-hook-form";
+import ControlledSelect from "./Controlled/ControlledSelect";
 
 type PaymentGatewayNode = Node<
   {
@@ -15,48 +18,46 @@ type PaymentGatewayNode = Node<
   "string"
 >;
 
-const PaymentGateway = React.memo(
-  ({ id, type, data: { gatewayId } }: NodeProps<PaymentGatewayNode>) => {
-    const { updateNodeData } = useReactFlow();
+const PaymentGateway = React.memo(({ id }: NodeProps<PaymentGatewayNode>) => {
+  const gatewayId = useWatch({ name: `${id}.gatewayId` });
 
-    const paymentGateway = PAYMENT_PROVIDERS.find(
-      (gateway) => gateway.id === gatewayId
-    );
+  const paymentGateway = useMemo(
+    () => PAYMENT_PROVIDERS.find((gateway) => gateway.id === gatewayId),
+    [gatewayId]
+  );
 
-    console.log("payment gateway is rendering");
+  console.log("payment gateway node is rendering");
 
-    return (
-      <NodeLayout
-        type={NodeType.PaymentGateway}
-        display={
-          <Box>
-            {paymentGateway ? (
-              <img
-                src={PAYMENT_PROVIDER_IMAGE_MAP[paymentGateway?.code]}
-                width="20px"
-                height="20px"
-              />
-            ) : (
-              "Payment Gateway"
-            )}
-          </Box>
-        }
-      >
+  return (
+    <NodeLayout
+      type={NodeType.PaymentGateway}
+      display={
         <Box>
-          <Select
-            onChange={(e) => updateNodeData(id, { gatewayId: e.target.value })}
-            value={gatewayId}
-            placeholder="Select Payment Gateway"
-            mt={2}
-          >
-            {PAYMENT_PROVIDERS.map((order) => (
-              <option value={order.id}>{order.name}</option>
-            ))}
-          </Select>
+          {paymentGateway ? (
+            <img
+              src={PAYMENT_PROVIDER_IMAGE_MAP[paymentGateway?.code]}
+              width="20px"
+              height="20px"
+            />
+          ) : (
+            "Payment Gateway"
+          )}
         </Box>
-      </NodeLayout>
-    );
-  }
-);
+      }
+    >
+      <Box>
+        <ControlledSelect
+          name={`${id}.gatewayId`}
+          placeholder="Select Payment Gateway"
+          mt={2}
+        >
+          {PAYMENT_PROVIDERS.map((order) => (
+            <option value={order.id}>{order.name}</option>
+          ))}
+        </ControlledSelect>
+      </Box>
+    </NodeLayout>
+  );
+}, memoComparator);
 
 export default PaymentGateway;

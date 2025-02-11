@@ -25,7 +25,7 @@ import { useData, useUpdateData } from "../api";
 import { NodeType } from "../constants";
 import Order from "../Components/Order";
 import PaymentGateway from "../Components/PaymentGateway";
-import { useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 
 const nodeTypes = {
   [NodeType.Order]: Order,
@@ -90,9 +90,8 @@ export const Workflow = () => {
     [screenToFlowPosition, setNodes]
   );
 
-  const { setViewport } = useReactFlow();
-
-  const { getValues, reset } = useForm();
+  const form = useForm();
+  const { getValues, reset } = form;
 
   const mapFlowObjectToFormValues = useCallback(
     (flow: ReactFlowJsonObject<Node, Edge>) => {
@@ -130,20 +129,20 @@ export const Workflow = () => {
   const onSave = useCallback(() => {
     if (rfInstance) {
       const flow = rfInstance.toObject();
-      // saveFlowState(mapFormValuesToFlowObject(flow));
+      saveFlowState(mapFormValuesToFlowObject(flow));
       saveFlowState(flow);
     }
-  }, [rfInstance, saveFlowState]);
+  }, [rfInstance, saveFlowState, mapFormValuesToFlowObject]);
 
   const restoreFlow = useCallback(
     (flow: ReactFlowJsonObject<Node, Edge>) => {
       if (flow) {
         setNodes(flow.nodes || []);
         setEdges(flow.edges || []);
-        // mapFlowObjectToFormValues(flow);
+        mapFlowObjectToFormValues(flow);
       }
     },
-    [setEdges, setNodes]
+    [setEdges, setNodes, mapFlowObjectToFormValues]
   );
 
   useEffect(() => {
@@ -162,65 +161,73 @@ export const Workflow = () => {
   );
 
   return (
-    <Box
-      height={"100vh"}
-      width="100vw"
-      border="1px solid black"
-      position="relative"
-    >
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        nodeTypes={nodeTypes}
-        onDrop={onDrop}
-        onDragOver={onDragOver}
-        onInit={setRfInstance}
+    <FormProvider {...form}>
+      <Box
+        height={"100vh"}
+        width="100vw"
+        border="1px solid black"
+        position="relative"
       >
-        <Panel
-          position="top-right"
-          style={{
-            border: "1px solid #ccc",
-            padding: 12,
-            borderRadius: "12px",
-            background: "white",
-            width: 150,
-          }}
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          onDrop={onDrop}
+          onDragOver={onDragOver}
+          onInit={setRfInstance}
         >
-          <Flex direction="column" gap={3}>
-            <div>
-              <Text fontSize="x-small">Project</Text>
-              <Flex gap={1} mt={1} flexWrap="wrap">
-                <IconButton
-                  icon={isPending ? <Spinner size="xs" /> : <Floppy />}
-                  aria-label="Save"
-                  size="xs"
-                  onClick={onSave}
-                />
-              </Flex>
-            </div>
-            <div>
-              <Text fontSize="x-small">Components</Text>
-              <Flex gap={1} mt={1} flexWrap="wrap">
-                {COMPONENTS.map((component) => (
+          <Panel
+            position="top-right"
+            style={{
+              border: "1px solid #ccc",
+              padding: 12,
+              borderRadius: "12px",
+              background: "white",
+              width: 150,
+            }}
+          >
+            <Flex direction="column" gap={3}>
+              <div>
+                <Text fontSize="x-small">Project</Text>
+                <Flex gap={1} mt={1} flexWrap="wrap">
                   <IconButton
-                    key={component.type}
-                    icon={component.icon}
-                    aria-label={component.label}
-                    size="sm"
-                    onDragStart={(event) => onDragStart(event, component.type)}
-                    draggable
+                    icon={isPending ? <Spinner size="xs" /> : <Floppy />}
+                    aria-label="Save"
+                    size="xs"
+                    onClick={onSave}
                   />
-                ))}
-              </Flex>
-            </div>
-          </Flex>
-        </Panel>
-        <Background id="1" color="#f1f1f1" variant={BackgroundVariant.Lines} />
-        <Controls />
-      </ReactFlow>
-    </Box>
+                </Flex>
+              </div>
+              <div>
+                <Text fontSize="x-small">Components</Text>
+                <Flex gap={1} mt={1} flexWrap="wrap">
+                  {COMPONENTS.map((component) => (
+                    <IconButton
+                      key={component.type}
+                      icon={component.icon}
+                      aria-label={component.label}
+                      size="sm"
+                      onDragStart={(event) =>
+                        onDragStart(event, component.type)
+                      }
+                      draggable
+                    />
+                  ))}
+                </Flex>
+              </div>
+            </Flex>
+          </Panel>
+          <Background
+            id="1"
+            color="#f1f1f1"
+            variant={BackgroundVariant.Lines}
+          />
+          <Controls />
+        </ReactFlow>
+      </Box>
+    </FormProvider>
   );
 };

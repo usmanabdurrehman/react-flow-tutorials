@@ -1,1 +1,3 @@
-export const memoComparator = () => true;
+export const memoComparator = () => {
+  return true;
+};

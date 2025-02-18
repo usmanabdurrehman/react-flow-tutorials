@@ -1,6 +1,6 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import NodeLayout from "./NodeLayout";
-import { Node, NodeProps, useReactFlow } from "@xyflow/react";
+import { Node, NodeProps } from "@xyflow/react";
 import { NodeType } from "../constants";
 import { Box, Flex, Text } from "@chakra-ui/react";
 import { ORDERS } from "../constants/dummy";
@@ -24,18 +24,22 @@ type OrderNode = Node<
 const Order = React.memo(function Order({ id }: NodeProps<OrderNode>) {
   console.log("order node is rerendering");
 
-  const orderId = useWatch({ name: `${id}.orderId` });
+  const [orderId, quantity] = useWatch({
+    name: [`${id}.orderId`, `${id}.quantity`],
+  });
 
   const order = useMemo(
     () => ORDERS.find((order) => order.id === orderId),
     [orderId]
   );
 
+  let display = "";
+  if (order?.name) display += `Order ${order?.name}`;
+  if (order && quantity) display += `, Q: ${quantity}`;
+  if (!order) display += "Order";
+
   return (
-    <NodeLayout
-      type={NodeType.Order}
-      display={order ? `Order ${order?.name}` : `Order`}
-    >
+    <NodeLayout type={NodeType.Order} display={display}>
       <Box>
         <ControlledSelect
           name={`${id}.orderId`}

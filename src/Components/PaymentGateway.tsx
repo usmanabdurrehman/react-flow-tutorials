@@ -1,5 +1,5 @@
 import NodeLayout from "./NodeLayout";
-import { Node, NodeProps, useReactFlow } from "@xyflow/react";
+import { Node, NodeProps } from "@xyflow/react";
 import { NodeType } from "../constants";
 import { Box, Select } from "@chakra-ui/react";
 import {

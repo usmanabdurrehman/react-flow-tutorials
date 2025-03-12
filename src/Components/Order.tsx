@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import NodeLayout from "./NodeLayout";
 import { Node, NodeProps, useReactFlow } from "@xyflow/react";
 import { NodeType } from "../constants";
@@ -23,20 +23,27 @@ type OrderNode = Node<
   "string"
 >;
 
-const Order = React.memo(function Order({
+const Order = function Order({
   id,
   type,
   data: { quantity, orderId, enableDiscount, details },
 }: NodeProps<OrderNode>) {
   const { updateNodeData } = useReactFlow();
 
-  const order = ORDERS.find((order) => order.id === orderId);
+  const order = useMemo(
+    () => ORDERS.find((order) => order.id === orderId),
+    [orderId]
+  );
+
+  let display = "";
+  if (order?.name) display += `Order ${order?.name}`;
+  if (order && quantity) display += `, Q: ${quantity}`;
+  if (!order) display += "Order";
+
+  console.log("order node is rerendering");
 
   return (
-    <NodeLayout
-      type={NodeType.Order}
-      display={order ? `Order ${order?.name}` : `Order`}
-    >
+    <NodeLayout type={NodeType.Order} display={display}>
       <Box>
         <Select
           onChange={(e) => updateNodeData(id, { orderId: e.target.value })}
@@ -74,6 +81,6 @@ const Order = React.memo(function Order({
       </Box>
     </NodeLayout>
   );
-});
+};
 
 export default Order;

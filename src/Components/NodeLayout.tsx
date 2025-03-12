@@ -1,4 +1,4 @@
-import { Box, Flex, Input, Text, useDisclosure } from "@chakra-ui/react";
+import { Box, Flex, useDisclosure } from "@chakra-ui/react";
 import React from "react";
 
 import {
@@ -37,13 +37,16 @@ export default function NodeLayout({
     <>
       <Flex
         onClick={onOpen}
-        p={2}
+        pl={2}
+        pr={2}
         bg="white"
         border={`2px solid ${border}`}
         borderRadius="8px"
         boxShadow="sm"
         alignItems={"center"}
         gap={2}
+        minWidth={"240px"}
+        height="40px"
       >
         {NodeTypeIconMap[type]}
         <Box fontSize="sm" flex="1">

@@ -90,47 +90,9 @@ export const Workflow = () => {
     [screenToFlowPosition, setNodes]
   );
 
-  const { setViewport } = useReactFlow();
-
-  const { getValues, reset } = useForm();
-
-  const mapFlowObjectToFormValues = useCallback(
-    (flow: ReactFlowJsonObject<Node, Edge>) => {
-      const formValues = flow?.nodes?.reduce(
-        (acc: { [id: string]: any }, node) => {
-          return {
-            ...acc,
-            [node?.id]: node?.data,
-          };
-        },
-        {}
-      );
-
-      reset(formValues);
-    },
-    [reset]
-  );
-
-  const mapFormValuesToFlowObject = useCallback(
-    (flow: ReactFlowJsonObject<Node, Edge>) => {
-      const values = getValues();
-      return {
-        ...flow,
-        nodes: flow?.nodes?.map((node) => {
-          return {
-            ...node,
-            data: values[node?.id] || {},
-          };
-        }),
-      };
-    },
-    [getValues]
-  );
-
   const onSave = useCallback(() => {
     if (rfInstance) {
       const flow = rfInstance.toObject();
-      // saveFlowState(mapFormValuesToFlowObject(flow));
       saveFlowState(flow);
     }
   }, [rfInstance, saveFlowState]);
@@ -140,7 +102,6 @@ export const Workflow = () => {
       if (flow) {
         setNodes(flow.nodes || []);
         setEdges(flow.edges || []);
-        // mapFlowObjectToFormValues(flow);
       }
     },
     [setEdges, setNodes]

@@ -7,6 +7,9 @@ import {
   PAYMENT_PROVIDERS,
 } from "../constants/dummy";
 import React, { useMemo } from "react";
+import ControlledSelect from "./Controlled/ControlledSelect";
+import { useWatch } from "react-hook-form";
+import { memoComparator } from "../utils/memoComparator";
 
 type PaymentGatewayNode = Node<
   {
@@ -15,12 +18,8 @@ type PaymentGatewayNode = Node<
   "string"
 >;
 
-const PaymentGateway = ({
-  id,
-  type,
-  data: { gatewayId },
-}: NodeProps<PaymentGatewayNode>) => {
-  const { updateNodeData } = useReactFlow();
+const PaymentGateway = React.memo(({ id }: NodeProps<PaymentGatewayNode>) => {
+  const gatewayId = useWatch({ name: `${id}.gatewayId` });
 
   const paymentGateway = useMemo(
     () => PAYMENT_PROVIDERS.find((gateway) => gateway.id === gatewayId),
@@ -47,19 +46,18 @@ const PaymentGateway = ({
       }
     >
       <Box>
-        <Select
-          onChange={(e) => updateNodeData(id, { gatewayId: e.target.value })}
-          value={gatewayId}
+        <ControlledSelect
+          name={`${id}.gatewayId`}
           placeholder="Select Payment Gateway"
           mt={2}
         >
           {PAYMENT_PROVIDERS.map((order) => (
             <option value={order.id}>{order.name}</option>
           ))}
-        </Select>
+        </ControlledSelect>
       </Box>
     </NodeLayout>
   );
-};
+}, memoComparator);
 
 export default PaymentGateway;

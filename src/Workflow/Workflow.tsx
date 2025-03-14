@@ -25,7 +25,7 @@ import { useData, useUpdateData } from "../api";
 import { NodeType } from "../constants";
 import Order from "../Components/Order";
 import PaymentGateway from "../Components/PaymentGateway";
-import { useForm } from "react-hook-form";
+import { useForm, useFormContext } from "react-hook-form";
 
 const nodeTypes = {
   [NodeType.Order]: Order,
@@ -90,21 +90,57 @@ export const Workflow = () => {
     [screenToFlowPosition, setNodes]
   );
 
+  const { getValues, reset } = useFormContext();
+
+  const mapFlowObjectToFormValues = useCallback(
+    (flow: ReactFlowJsonObject<Node, Edge>) => {
+      const formValues = flow?.nodes?.reduce(
+        (acc: { [id: string]: any }, node) => {
+          return {
+            ...acc,
+            [node?.id]: node?.data,
+          };
+        },
+        {}
+      );
+
+      reset(formValues);
+    },
+    [reset]
+  );
+
+  const mapFormValuesToFlowObject = useCallback(
+    (flow: ReactFlowJsonObject<Node, Edge>) => {
+      const values = getValues();
+      return {
+        ...flow,
+        nodes: flow?.nodes?.map((node) => {
+          return {
+            ...node,
+            data: values[node?.id] || {},
+          };
+        }),
+      };
+    },
+    [getValues]
+  );
+
   const onSave = useCallback(() => {
     if (rfInstance) {
       const flow = rfInstance.toObject();
-      saveFlowState(flow);
+      saveFlowState(mapFormValuesToFlowObject(flow));
     }
-  }, [rfInstance, saveFlowState]);
+  }, [rfInstance, saveFlowState, mapFormValuesToFlowObject]);
 
   const restoreFlow = useCallback(
     (flow: ReactFlowJsonObject<Node, Edge>) => {
       if (flow) {
         setNodes(flow.nodes || []);
         setEdges(flow.edges || []);
+        mapFlowObjectToFormValues(flow);
       }
     },
-    [setEdges, setNodes]
+    [setEdges, setNodes, mapFlowObjectToFormValues]
   );
 
   useEffect(() => {

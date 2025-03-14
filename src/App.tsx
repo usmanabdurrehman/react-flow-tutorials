@@ -4,6 +4,7 @@ import { Workflow } from "./Workflow/Workflow";
 import "./index.css";
 import { ReactFlowProvider } from "@xyflow/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { FormProvider, useForm } from "react-hook-form";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -17,11 +18,15 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  const form = useForm();
+
   return (
     <ChakraProvider>
       <QueryClientProvider client={queryClient}>
         <ReactFlowProvider>
-          <Workflow />
+          <FormProvider {...form}>
+            <Workflow />
+          </FormProvider>
         </ReactFlowProvider>
       </QueryClientProvider>
     </ChakraProvider>

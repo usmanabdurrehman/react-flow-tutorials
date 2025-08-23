@@ -3,43 +3,36 @@ import {
   Background,
   Connection,
   Controls,
-  Edge,
-  Node,
   Panel,
   useEdgesState,
   useNodesState,
   useReactFlow,
-  ReactFlowInstance,
   BackgroundVariant,
-  ReactFlowJsonObject,
+  Node,
+  OnNodeDrag,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { Box, Flex, IconButton, Spinner, Text } from "@chakra-ui/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Box, Flex, IconButton, Text } from "@chakra-ui/react";
+import { useCallback, useRef } from "react";
 import { v4 as uuid } from "uuid";
 import { COMPONENTS, initialEdges, initialNodes } from "../constants";
-import { Floppy } from "react-bootstrap-icons";
-import { useData, useUpdateData } from "../api";
-import { NodeType } from "../constants";
-import Order from "../Components/Order";
-import PaymentGateway from "../Components/PaymentGateway";
-import { useFormContext } from "react-hook-form";
+import { InfoNode as InfoNodeType, NodeType } from "../types";
+import NameNode from "../Components/NameNode";
+import InfoNode from "../Components/InfoNode";
+import { AppNode } from "../types";
+import UtilityNode from "../Components/UtilityNode";
+import { HandleNode } from "../Components/HandleNode";
 
 const nodeTypes = {
-  [NodeType.Order]: Order,
-  [NodeType.PaymentGateway]: PaymentGateway,
+  [NodeType.Name]: NameNode,
+  [NodeType.Info]: InfoNode,
+  [NodeType.Handle]: HandleNode,
+  [NodeType.Utility]: UtilityNode,
 };
 
 export const Workflow = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [rfInstance, setRfInstance] = useState<ReactFlowInstance<
-    Node,
-    Edge
-  > | null>(null);
-
-  const { mutateAsync: saveFlowState, isPending } = useUpdateData();
-  const { data: reactFlowState } = useData();
 
   const { screenToFlowPosition } = useReactFlow();
   const dragOutSideRef = useRef<string>();
@@ -60,8 +53,6 @@ export const Workflow = () => {
     []
   );
 
-  console.log("workflow rerendering");
-
   const onDrop: React.DragEventHandler<HTMLDivElement> = useCallback(
     (event) => {
       event.preventDefault();
@@ -81,69 +72,12 @@ export const Workflow = () => {
         type,
         position,
         data: {},
-      };
+      } as AppNode;
 
       setNodes((prevNodes) => [...prevNodes, newNode]);
     },
     [screenToFlowPosition, setNodes]
   );
-
-  const { getValues, reset } = useFormContext();
-
-  const mapFlowObjectToFormValues = useCallback(
-    (flow: ReactFlowJsonObject<Node, Edge>) => {
-      const formValues = flow?.nodes?.reduce(
-        (acc: { [id: string]: any }, node) => {
-          return {
-            ...acc,
-            [node?.id]: node?.data,
-          };
-        },
-        {}
-      );
-
-      reset(formValues);
-    },
-    [reset]
-  );
-
-  const mapFormValuesToFlowObject = useCallback(
-    (flow: ReactFlowJsonObject<Node, Edge>) => {
-      const values = getValues();
-      return {
-        ...flow,
-        nodes: flow?.nodes?.map((node) => {
-          return {
-            ...node,
-            data: values[node?.id] || {},
-          };
-        }),
-      };
-    },
-    [getValues]
-  );
-
-  const onSave = useCallback(() => {
-    if (rfInstance) {
-      const flow = rfInstance.toObject();
-      saveFlowState(mapFormValuesToFlowObject(flow));
-    }
-  }, [rfInstance, saveFlowState, mapFormValuesToFlowObject]);
-
-  const restoreFlow = useCallback(
-    (flow: ReactFlowJsonObject<Node, Edge>) => {
-      if (flow) {
-        setNodes(flow.nodes || []);
-        setEdges(flow.edges || []);
-        mapFlowObjectToFormValues(flow);
-      }
-    },
-    [setEdges, setNodes, mapFlowObjectToFormValues]
-  );
-
-  useEffect(() => {
-    restoreFlow(reactFlowState);
-  }, [reactFlowState, restoreFlow]);
 
   const onConnect = useCallback(
     (connection: Connection) => {
@@ -155,6 +89,8 @@ export const Workflow = () => {
     },
     [setEdges]
   );
+
+  const onNodeDrag: OnNodeDrag = useCallback((_, node) => {}, []);
 
   return (
     <Box
@@ -172,7 +108,8 @@ export const Workflow = () => {
         nodeTypes={nodeTypes}
         onDrop={onDrop}
         onDragOver={onDragOver}
-        onInit={setRfInstance}
+        onNodeDrag={onNodeDrag}
+        fitView
       >
         <Panel
           position="top-right"
@@ -185,17 +122,6 @@ export const Workflow = () => {
           }}
         >
           <Flex direction="column" gap={3}>
-            <div>
-              <Text fontSize="x-small">Project</Text>
-              <Flex gap={1} mt={1} flexWrap="wrap">
-                <IconButton
-                  icon={isPending ? <Spinner size="xs" /> : <Floppy />}
-                  aria-label="Save"
-                  size="xs"
-                  onClick={onSave}
-                />
-              </Flex>
-            </div>
             <div>
               <Text fontSize="x-small">Components</Text>
               <Flex gap={1} mt={1} flexWrap="wrap">
